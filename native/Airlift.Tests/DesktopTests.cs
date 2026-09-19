@@ -257,13 +257,19 @@ public sealed class DesktopTests
         Assert.DoesNotContain(dialog.GetVisualDescendants().OfType<Button>(), b => b.IsEnabled && (b.Content as string)?.StartsWith("Update to ") == true);
         ClickCheck(channel); Assert.False(manager.Preferences(app).IncludePrerelease); Assert.True(dialog.IsVisible);
         preview.SetResult(new(System.Net.HttpStatusCode.OK) { Content = new StringContent("[" + ReleaseHistoryTests.ReleaseJson("v3.0.0-rc.1", true) + "]") });
-        for (var i = 0; i < 100 && !dialog.GetVisualDescendants().OfType<Button>().Any(b => b.IsEnabled && b.Content as string == "Update to 2.0.0"); i++)
+        for (var i = 0; i < 200 && (manager.Store.Get<ReleaseCache>("releases", app.Id + ":preview")?.Release == null ||
+            !dialog.GetVisualDescendants().OfType<TextBlock>().Any(t => t.Text == "Latest release  ·  v2.0.0")); i++)
         { await Task.Delay(10); dialog.UpdateLayout(); Dispatcher.UIThread.RunJobs(); }
         Assert.True(dialog.IsVisible); Assert.False(channel.IsChecked); Assert.True(pin.IsChecked);
-        Assert.Contains(dialog.GetVisualDescendants().OfType<Button>(), b => b.IsEnabled && b.Content as string == "Update to 2.0.0");
+        Assert.Contains(dialog.GetVisualDescendants().OfType<TextBlock>(), t => t.Text == "Latest release  ·  v2.0.0");
+        if (HostPlatform.Os == "windows" && HostPlatform.Arch == "x64")
+            Assert.Contains(dialog.GetVisualDescendants().OfType<Button>(), b => b.IsEnabled && b.Content as string == "Update to 2.0.0");
+        else Assert.DoesNotContain(dialog.GetVisualDescendants().OfType<Button>(), b => (b.Content as string)?.StartsWith("Update to ") == true);
         Assert.DoesNotContain(dialog.GetVisualDescendants().OfType<Button>(), b => (b.Content as string)?.Contains("3.0.0-rc.1") == true);
         ClickCheck(channel); dialog.UpdateLayout(); Dispatcher.UIThread.RunJobs(); // The cached preview should now update this same dialog.
-        Assert.Contains(dialog.GetVisualDescendants().OfType<Button>(), b => b.IsEnabled && b.Content as string == "Update to 3.0.0-rc.1");
+        Assert.Contains(dialog.GetVisualDescendants().OfType<TextBlock>(), t => t.Text == "Latest release  ·  v3.0.0-rc.1");
+        if (HostPlatform.Os == "windows" && HostPlatform.Arch == "x64")
+            Assert.Contains(dialog.GetVisualDescendants().OfType<Button>(), b => b.IsEnabled && b.Content as string == "Update to 3.0.0-rc.1");
         SaveScreenshot(dialog, "preferences-open"); dialog.Close(); main.Close();
         var persisted = new StateStore(store.Root).Get<AppPreferences>("preferences", app.Id)!;
         Assert.True(persisted.Pinned); Assert.True(persisted.IncludePrerelease);
