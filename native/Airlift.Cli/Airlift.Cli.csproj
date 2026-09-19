@@ -1,0 +1,4 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup><OutputType>Exe</OutputType><AssemblyName>airlift-cli</AssemblyName></PropertyGroup>
+  <ItemGroup><ProjectReference Include="../Airlift.Core/Airlift.Core.csproj" /></ItemGroup>
+</Project>

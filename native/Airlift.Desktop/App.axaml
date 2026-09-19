@@ -1,0 +1,59 @@
+<Application xmlns="https://github.com/avaloniaui" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" x:Class="Airlift.Desktop.App" RequestedThemeVariant="Dark">
+  <Application.Styles>
+    <FluentTheme>
+      <FluentTheme.Palettes><ColorPaletteResources x:Key="Dark" Accent="#D7F59A"/></FluentTheme.Palettes>
+    </FluentTheme>
+    <Style Selector="Window">
+      <Setter Property="Background" Value="#101211"/><Setter Property="Foreground" Value="#E8EAE5"/>
+      <Setter Property="FontFamily" Value="avares://Airlift/Assets/Fonts#DM Sans"/><Setter Property="FontSize" Value="13"/>
+    </Style>
+    <Style Selector="Button">
+      <Setter Property="CornerRadius" Value="7"/><Setter Property="Padding" Value="13,8"/>
+      <Setter Property="MinHeight" Value="34"/><Setter Property="HorizontalContentAlignment" Value="Center"/>
+      <Setter Property="VerticalContentAlignment" Value="Center"/><Setter Property="VerticalAlignment" Value="Center"/>
+      <Setter Property="Background" Value="#252D20"/><Setter Property="Foreground" Value="#D1DDC2"/>
+      <Setter Property="BorderBrush" Value="#3D4932"/><Setter Property="BorderThickness" Value="1"/>
+      <Setter Property="FontSize" Value="12"/><Setter Property="Cursor" Value="Hand"/>
+    </Style>
+    <Style Selector="Button:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+      <Setter Property="Background" Value="#303A28"/><Setter Property="BorderBrush" Value="#536343"/><Setter Property="Foreground" Value="#E8EAE5"/>
+    </Style>
+    <Style Selector="Button:pressed /template/ ContentPresenter#PART_ContentPresenter"><Setter Property="Background" Value="#20291C"/><Setter Property="Foreground" Value="#D7F59A"/></Style>
+    <Style Selector="Button.primary"><Setter Property="Background" Value="#D7F59A"/><Setter Property="Foreground" Value="#25311C"/><Setter Property="BorderBrush" Value="#D7F59A"/><Setter Property="FontWeight" Value="SemiBold"/></Style>
+    <Style Selector="Button.primary:pointerover /template/ ContentPresenter#PART_ContentPresenter"><Setter Property="Background" Value="#E5FFB7"/><Setter Property="Foreground" Value="#25311C"/><Setter Property="BorderBrush" Value="#E5FFB7"/></Style>
+    <Style Selector="Button.primary:pressed /template/ ContentPresenter#PART_ContentPresenter"><Setter Property="Background" Value="#BEDD81"/><Setter Property="Foreground" Value="#25311C"/></Style>
+    <Style Selector="Button.nav"><Setter Property="Background" Value="Transparent"/><Setter Property="BorderThickness" Value="0"/><Setter Property="HorizontalContentAlignment" Value="Left"/><Setter Property="Height" Value="42"/><Setter Property="Padding" Value="13,0"/><Setter Property="Foreground" Value="#9DA399"/></Style>
+    <Style Selector="Button.nav.active"><Setter Property="Background" Value="#293021"/><Setter Property="Foreground" Value="#D7F59A"/></Style>
+    <Style Selector="Button.nav:pointerover /template/ ContentPresenter#PART_ContentPresenter"><Setter Property="Background" Value="#242923"/></Style>
+    <Style Selector="Button.nav.active:pointerover /template/ ContentPresenter#PART_ContentPresenter"><Setter Property="Background" Value="#313B26"/><Setter Property="Foreground" Value="#D7F59A"/></Style>
+    <Style Selector="Button.link, Button.identity"><Setter Property="Background" Value="Transparent"/><Setter Property="BorderThickness" Value="0"/><Setter Property="Padding" Value="0"/><Setter Property="MinHeight" Value="0"/><Setter Property="HorizontalContentAlignment" Value="Left"/></Style>
+    <!-- App identity stays transparent in every pointer state; keyboard focus retains its outline. -->
+    <Style Selector="Button.link:pointerover /template/ ContentPresenter#PART_ContentPresenter, Button.link:pressed /template/ ContentPresenter#PART_ContentPresenter, Button.identity:pointerover /template/ ContentPresenter#PART_ContentPresenter, Button.identity:pressed /template/ ContentPresenter#PART_ContentPresenter">
+      <Setter Property="Background" Value="Transparent"/><Setter Property="BorderBrush" Value="Transparent"/><Setter Property="Foreground" Value="#D7F59A"/>
+    </Style>
+    <Style Selector="Button.identity:pressed"><Setter Property="RenderTransform" Value="none"/></Style>
+    <Style Selector="Button:focus-visible /template/ ContentPresenter#PART_ContentPresenter"><Setter Property="BorderBrush" Value="#D7F59A"/><Setter Property="BorderThickness" Value="1"/></Style>
+    <Style Selector="Button.chip"><Setter Property="FontSize" Value="11"/><Setter Property="Background" Value="Transparent"/><Setter Property="BorderThickness" Value="0"/><Setter Property="Padding" Value="11,7"/><Setter Property="Foreground" Value="#9DA399"/></Style>
+    <Style Selector="Button.chip.active"><Setter Property="Background" Value="#293021"/><Setter Property="Foreground" Value="#D7F59A"/><Setter Property="BorderThickness" Value="1"/></Style>
+    <Style Selector="Button.danger"><Setter Property="Background" Value="#302420"/><Setter Property="BorderBrush" Value="#634236"/><Setter Property="Foreground" Value="#EAB5A4"/></Style>
+    <Style Selector="Button.danger:pointerover /template/ ContentPresenter#PART_ContentPresenter"><Setter Property="Background" Value="#47302A"/><Setter Property="BorderBrush" Value="#896050"/><Setter Property="Foreground" Value="#FFD2C1"/></Style>
+    <Style Selector="Button:disabled"><Setter Property="Opacity" Value="0.45"/></Style>
+    <!-- Keep a dark glyph against the pale accent in checked, hovered and pressed states. -->
+    <Style Selector="CheckBox:checked /template/ Path#CheckGlyph, CheckBox:indeterminate /template/ Path#CheckGlyph">
+      <Setter Property="Fill" Value="#25311C"/>
+    </Style>
+    <Style Selector="CheckBox:checked /template/ Border#NormalRectangle, CheckBox:indeterminate /template/ Border#NormalRectangle">
+      <Setter Property="Background" Value="#D7F59A"/><Setter Property="BorderBrush" Value="#D7F59A"/>
+    </Style>
+    <Style Selector="CheckBox:checked:pointerover /template/ Path#CheckGlyph, CheckBox:checked:pressed /template/ Path#CheckGlyph, CheckBox:indeterminate:pointerover /template/ Path#CheckGlyph, CheckBox:indeterminate:pressed /template/ Path#CheckGlyph"><Setter Property="Fill" Value="#25311C"/></Style>
+    <Style Selector="CheckBox:checked:pointerover /template/ Border#NormalRectangle, CheckBox:indeterminate:pointerover /template/ Border#NormalRectangle"><Setter Property="Background" Value="#E5FFB7"/></Style>
+    <Style Selector="CheckBox:checked:pressed /template/ Border#NormalRectangle, CheckBox:indeterminate:pressed /template/ Border#NormalRectangle"><Setter Property="Background" Value="#BEDD81"/></Style>
+    <Style Selector="CheckBox:disabled"><Setter Property="Opacity" Value="0.5"/></Style>
+    <Style Selector="Border.app-card"><Setter Property="BorderBrush" Value="#30362C"/></Style>
+    <Style Selector="Border.app-card:pointerover"><Setter Property="BorderBrush" Value="#4B593D"/></Style>
+    <Style Selector="TextBox"><Setter Property="CornerRadius" Value="7"/><Setter Property="Background" Value="#181C17"/><Setter Property="BorderBrush" Value="#30362C"/><Setter Property="FontSize" Value="12"/><Setter Property="Padding" Value="12,9"/></Style>
+    <Style Selector="ComboBox"><Setter Property="CornerRadius" Value="7"/><Setter Property="FontSize" Value="12"/><Setter Property="Background" Value="#181C17"/><Setter Property="BorderBrush" Value="#30362C"/></Style>
+    <Style Selector="ProgressBar"><Setter Property="Foreground" Value="#D7F59A"/><Setter Property="Background" Value="#30362C"/><Setter Property="Height" Value="4"/><Setter Property="CornerRadius" Value="2"/></Style>
+    <Style Selector="ScrollBar"><Setter Property="Width" Value="8"/></Style>
+  </Application.Styles>
+</Application>

@@ -1,0 +1,10 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import { normalizeRelease, repositoryPath } from '../src/github.ts';
+const asset = { name: 'App-Setup-1.0.0.exe', size: 1234, state: 'uploaded', browser_download_url: 'https://github.com/fezcode/App/releases/download/v1.0.0/App-Setup-1.0.0.exe', digest: `sha256:${'a'.repeat(64)}` };
+const release = { tag_name: 'v1.0.0', draft: false, prerelease: false, html_url: 'https://github.com/fezcode/App/releases/tag/v1.0.0', assets: [asset] };
+test('preserves release metadata and verified digest format', () => { const value = normalizeRelease(release, 'fezcode/App'); assert.equal(value.tag, 'v1.0.0'); assert.equal(value.assets[0].bytes, 1234); assert.equal(value.assets[0].digest, asset.digest); });
+test('does not expose asset links outside the configured repository', () => { const value = normalizeRelease({ ...release, assets: [asset, { ...asset, browser_download_url: 'https://evil.example/setup.exe' }, { ...asset, browser_download_url: 'https://github.com/other/App/releases/download/v1/setup.exe' }] }, 'fezcode/App'); assert.equal(value.assets.length, 1); });
+test('rejects malformed repository IDs and unexpected release pages', () => { assert.throws(() => repositoryPath('fezcode/App/../../secret')); assert.throws(() => normalizeRelease({ ...release, html_url: 'https://example.com/app' }, 'fezcode/App')); });
+test('rejects prereleases and drafts from stable channel', () => { assert.throws(() => normalizeRelease({ ...release, prerelease: true }, 'fezcode/App')); assert.throws(() => normalizeRelease({ ...release, draft: true }, 'fezcode/App')); });
+test('never invents a digest or accepts an unfinished asset', () => { const value = normalizeRelease({ ...release, assets: [{ ...asset, digest: null }, { ...asset, state: 'new' }] }, 'fezcode/App'); assert.equal(value.assets.length, 1); assert.equal(value.assets[0].digest, null); });

@@ -1,0 +1,6 @@
+<Solution>
+  <Project Path="Airlift.Core/Airlift.Core.csproj" />
+  <Project Path="Airlift.Desktop/Airlift.Desktop.csproj" />
+  <Project Path="Airlift.Cli/Airlift.Cli.csproj" />
+  <Project Path="Airlift.Tests/Airlift.Tests.csproj" />
+</Solution>

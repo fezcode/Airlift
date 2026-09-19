@@ -1,0 +1,56 @@
+[app]
+name = "Airlift"
+version = "0.2.2"
+id = "com.fezcode.airlift"
+icon = "native/Airlift.Desktop/Assets/airlift.ico"
+
+[meta]
+publisher = "Fezcode"
+comments = "Your apps. In good hands."
+
+[ui]
+theme = "mica"
+window_title = "Airlift Setup"
+
+[install]
+default_dir = "${LOCALAPPDATA}/Programs/Airlift"
+
+[uninstall]
+settings_dirs = ["${LOCALAPPDATA}/Fezcode/Airlift"]
+
+[[steps]]
+type = "welcome"
+title = "A little lift for your everyday."
+body = "Install Airlift to discover and manage your apps from public GitHub releases."
+
+[[steps]]
+type = "folder"
+
+[[steps]]
+type = "install"
+
+[[steps]]
+type = "finish"
+body = "Airlift is ready."
+
+[[steps.launches]]
+kind = "app"
+target = "${INSTALLDIR}/Airlift.exe"
+label = "Open Airlift"
+checked = true
+
+[[dirs]]
+src = "dist/win-x64/desktop"
+dst = "${INSTALLDIR}"
+
+[[dirs]]
+src = "dist/win-x64/cli"
+dst = "${INSTALLDIR}/cli"
+
+[[shortcuts]]
+target = "${INSTALLDIR}/Airlift.exe"
+location = "${STARTMENU}/Airlift.lnk"
+name = "Airlift"
+app_id = "Fezcode.Airlift"
+
+

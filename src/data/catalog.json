@@ -1,0 +1,260 @@
+{
+  "source": "Local Forge manifests",
+  "apps": [
+    {
+      "id": "com.fezcode.descry",
+      "name": "Descry",
+      "version": "0.87.0",
+      "publisher": "Fezcode",
+      "category": "Productivity",
+      "tagline": "A little space for big ideas.",
+      "description": "A keyboard-driven Markdown editor. Connect your notes, explore your vault, and stay in your flow.",
+      "color": "#b9aceb",
+      "icon": "/icons/com.fezcode.descry.ico",
+      "project": "Descry",
+      "repository": "fezcode/Descry",
+      "manifest": "Descry/forge.toml",
+      "platforms": [
+        "windows"
+      ],
+      "defaultDirectory": "${PROGRAMFILES}/Descry",
+      "homepage": "",
+      "artifacts": [
+        {
+          "file": "Descry-Setup-0.87.0.exe",
+          "bytes": 25985560,
+          "platform": "windows",
+          "format": "forge-exe"
+        }
+      ]
+    },
+    {
+      "id": "com.fezcode.atelier",
+      "name": "Atelier",
+      "version": "0.3.3",
+      "publisher": "Fezcode",
+      "category": "Creative",
+      "tagline": "Every image deserves a good frame.",
+      "description": "A lightweight native image viewer with a thoughtful interface and support for modern formats.",
+      "color": "#e9b29d",
+      "icon": "/icons/com.fezcode.atelier.ico",
+      "project": "Atelier",
+      "repository": "fezcode/Atelier",
+      "manifest": "Atelier/forge.toml",
+      "platforms": [
+        "windows"
+      ],
+      "defaultDirectory": "${PROGRAMFILES}/Atelier",
+      "homepage": "https://github.com/fezcode/Atelier",
+      "artifacts": [
+        {
+          "file": "Atelier-Setup-0.3.3.exe",
+          "bytes": 86505396,
+          "platform": "windows",
+          "format": "forge-exe"
+        }
+      ]
+    },
+    {
+      "id": "io.clockt.clockt",
+      "name": "clockt",
+      "version": "0.5.13",
+      "publisher": "Samil Bulbul",
+      "category": "Developer tools",
+      "tagline": "Your terminal. Your territory.",
+      "description": "A terminal and multiplexer with persistent sessions, workspaces, splits, and a plugin-driven status bar.",
+      "color": "#b3d7ba",
+      "icon": "/icons/io.clockt.clockt.ico",
+      "project": "clockt",
+      "repository": "fezcode/clockt",
+      "manifest": "clockt/forge.toml",
+      "platforms": [
+        "windows"
+      ],
+      "defaultDirectory": "${LOCALAPPDATA}/Programs/clockt",
+      "homepage": "",
+      "artifacts": []
+    },
+    {
+      "id": "io.hisashi.hisashi",
+      "name": "Hisashi",
+      "version": "0.6.14",
+      "publisher": "Samil Bulbul",
+      "category": "Utilities",
+      "tagline": "Make yourself at home.",
+      "description": "A customizable top bar and dock. Keep your apps, widgets, and everyday essentials within reach.",
+      "color": "#9cbedc",
+      "icon": "/icons/io.hisashi.hisashi.ico",
+      "project": "hisashi",
+      "repository": "fezcode/hisashi",
+      "manifest": "hisashi/forge.toml",
+      "platforms": [
+        "windows"
+      ],
+      "defaultDirectory": "${LOCALAPPDATA}/Programs/Hisashi",
+      "homepage": "",
+      "artifacts": []
+    },
+    {
+      "id": "io.timp.timp",
+      "name": "Timp",
+      "version": "0.12.2",
+      "publisher": "Şamil Bülbül (Fezcode)",
+      "category": "Media",
+      "tagline": "Less interface. More music.",
+      "description": "An album-art-first music player with a live spectrum, equalizer, playlists, and synced lyrics.",
+      "color": "#e5ba73",
+      "icon": "/icons/io.timp.timp.ico",
+      "project": "Timp",
+      "repository": "fezcode/timp",
+      "manifest": "Timp/forge.toml",
+      "platforms": [
+        "windows"
+      ],
+      "defaultDirectory": "${PROGRAMFILES}/Timp",
+      "homepage": "",
+      "artifacts": []
+    },
+    {
+      "id": "io.tivi.tivi",
+      "name": "tivi",
+      "version": "0.4.1",
+      "publisher": "Şamil Bülbül (Fezcode)",
+      "category": "Media",
+      "tagline": "Press play. Settle in.",
+      "description": "A native video player with hardware decoding, crisp subtitles, and a warm, minimal interface.",
+      "color": "#aebeea",
+      "icon": "/icons/io.tivi.tivi.ico",
+      "project": "tivi",
+      "repository": "fezcode/tivi",
+      "manifest": "tivi/forge.toml",
+      "platforms": [
+        "windows"
+      ],
+      "defaultDirectory": "${PROGRAMFILES}/tivi",
+      "homepage": "",
+      "artifacts": []
+    },
+    {
+      "id": "io.pidi.pidi",
+      "name": "pidi",
+      "version": "0.2.2",
+      "publisher": "Şamil Bülbül (Fezcode)",
+      "category": "Productivity",
+      "tagline": "A fresh page.",
+      "description": "A small, native PDF reader with annotations, search, forms, and a comfortable reading experience.",
+      "color": "#e4aca9",
+      "icon": "/icons/io.pidi.pidi.ico",
+      "project": "pidi",
+      "repository": "fezcode/pidi",
+      "manifest": "pidi/forge.toml",
+      "platforms": [
+        "windows"
+      ],
+      "defaultDirectory": "${PROGRAMFILES}/pidi",
+      "homepage": "",
+      "artifacts": []
+    },
+    {
+      "id": "com.fezcode.cogas",
+      "name": "Cogas",
+      "version": "0.15.2",
+      "publisher": "Fezcode",
+      "category": "Gaming",
+      "tagline": "All your games. One library.",
+      "description": "Bring your installed games together across stores, compare prices, and find your next favorite.",
+      "color": "#c0a7e9",
+      "icon": "/icons/com.fezcode.cogas.ico",
+      "project": "Cogas",
+      "repository": "fezcode/Cogas",
+      "manifest": "Cogas/forge.toml",
+      "platforms": [
+        "windows"
+      ],
+      "defaultDirectory": "${LOCALAPPDATA}/Programs/Cogas",
+      "homepage": "https://github.com/fezcode/Cogas",
+      "artifacts": []
+    },
+    {
+      "id": "com.fezcode.typewriter",
+      "name": "Typewriter",
+      "version": "0.4.0",
+      "publisher": "Fezcode",
+      "category": "Creative",
+      "tagline": "Just you and the next sentence.",
+      "description": "A distraction-free text editor with warm paper, mechanical key sounds, and the soul of a typewriter.",
+      "color": "#dfceb0",
+      "icon": "/icons/com.fezcode.typewriter.ico",
+      "project": "typewriter",
+      "repository": "fezcode/typewriter",
+      "manifest": "typewriter/forge.toml",
+      "platforms": [
+        "windows"
+      ],
+      "defaultDirectory": "${LOCALAPPDATA}/Programs/Typewriter",
+      "homepage": "https://github.com/fezcode/typewriter",
+      "artifacts": [
+        {
+          "file": "Typewriter-Setup-0.4.0.exe",
+          "bytes": 17938960,
+          "platform": "windows",
+          "format": "forge-exe"
+        }
+      ]
+    },
+    {
+      "id": "com.fezcode.xboard",
+      "name": "xboard",
+      "version": "2.0.3",
+      "publisher": "Fezcode",
+      "category": "Utilities",
+      "tagline": "A different way to type.",
+      "description": "A native virtual keyboard for controllers, with dual-stick, dial, and Morse input.",
+      "color": "#92c4d2",
+      "icon": "/icons/com.fezcode.xboard.ico",
+      "project": "xboard",
+      "repository": "fezcode/xboard",
+      "manifest": "xboard/forge.toml",
+      "platforms": [
+        "windows"
+      ],
+      "defaultDirectory": "${PROGRAMFILES}/xboard",
+      "homepage": "https://github.com/fezcode/xboard",
+      "artifacts": [
+        {
+          "file": "xboard-Setup-2.0.3.exe",
+          "bytes": 28179632,
+          "platform": "windows",
+          "format": "forge-exe"
+        }
+      ]
+    },
+    {
+      "id": "com.fezcode.osxos",
+      "name": "osXos",
+      "version": "0.1.0",
+      "publisher": "Fezcode",
+      "category": "Utilities",
+      "tagline": "System care, with no surprises.",
+      "description": "Everyday system maintenance with clear explanations, a review before changes, and results you can understand.",
+      "color": "#b8cda0",
+      "icon": "/icons/com.fezcode.osxos.ico",
+      "project": "osXos",
+      "repository": "fezcode/osXos",
+      "manifest": "osXos/forge.toml",
+      "platforms": [
+        "windows"
+      ],
+      "defaultDirectory": "${LOCALAPPDATA}/Programs/osXos",
+      "homepage": "https://github.com/fezcode/osXos",
+      "artifacts": [
+        {
+          "file": "osXos-Setup-0.1.0.exe",
+          "bytes": 72677487,
+          "platform": "windows",
+          "format": "forge-exe"
+        }
+      ]
+    }
+  ]
+}
