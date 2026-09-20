@@ -1,4 +1,4 @@
-# Native Airlift 0.2.7
+# Native Airlift 0.2.8
 
 The desktop app and CLI use the same `Airlift.Core` library: catalog/version resolution, SQLite persistence, GitHub caching, downloads, package validation and OS providers. `Airlift.Desktop` contains Avalonia 12 views; `Airlift.Tests` covers core behavior and headless rendering. Available versions always come from published GitHub releases, not local Forge manifests.
 
@@ -24,7 +24,7 @@ Windows outputs:
 
 - `dist/win-x64/desktop/Airlift.exe`
 - `dist/win-x64/cli/airlift-cli.exe`
-- `dist/installer/Airlift-Setup-0.2.7.exe`
+- `dist/installer/Airlift-Setup-0.2.8.exe`
 
 The release version lives in `native/Directory.Build.props`; `Airlift.Core.AppVersion` reads the resulting assembly stamp, so the CLI banner, both `--version` outputs, the GitHub User-Agent and the desktop About card never hardcode it. `version.ps1` bumps that value and the three inputs that cannot read an assembly: `forge.toml` and the installer references in both READMEs. It exits non-zero if they disagree.
 

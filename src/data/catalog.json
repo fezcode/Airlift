@@ -4,7 +4,7 @@
     {
       "id": "com.fezcode.descry",
       "name": "Descry",
-      "version": "0.87.0",
+      "version": "0.88.0",
       "publisher": "Fezcode",
       "category": "Productivity",
       "tagline": "A little space for big ideas.",
@@ -21,8 +21,8 @@
       "homepage": "",
       "artifacts": [
         {
-          "file": "Descry-Setup-0.87.0.exe",
-          "bytes": 25985560,
+          "file": "Descry-Setup-0.88.0.exe",
+          "bytes": 26003610,
           "platform": "windows",
           "format": "forge-exe"
         }
@@ -31,7 +31,7 @@
     {
       "id": "com.fezcode.atelier",
       "name": "Atelier",
-      "version": "0.3.3",
+      "version": "0.4.0",
       "publisher": "Fezcode",
       "category": "Creative",
       "tagline": "Every image deserves a good frame.",
@@ -48,8 +48,8 @@
       "homepage": "https://github.com/fezcode/Atelier",
       "artifacts": [
         {
-          "file": "Atelier-Setup-0.3.3.exe",
-          "bytes": 86505396,
+          "file": "Atelier-Setup-0.4.0.exe",
+          "bytes": 87055099,
           "platform": "windows",
           "format": "forge-exe"
         }
@@ -58,7 +58,7 @@
     {
       "id": "io.clockt.clockt",
       "name": "clockt",
-      "version": "0.5.13",
+      "version": "0.5.23",
       "publisher": "Samil Bulbul",
       "category": "Developer tools",
       "tagline": "Your terminal. Your territory.",
@@ -76,9 +76,29 @@
       "artifacts": []
     },
     {
+      "id": "com.fezcode.gitland",
+      "name": "Gitland",
+      "version": "0.9.0",
+      "publisher": "Fezcode",
+      "category": "Developer tools",
+      "tagline": "A clear view of your code.",
+      "description": "A native Git client with readable diffs, three-way review, and an editable merge result.",
+      "color": "#8aa7ff",
+      "icon": "/icons/com.fezcode.gitland.ico",
+      "project": "gitland",
+      "repository": "fezcode/gitland",
+      "manifest": "gitland/forge.toml",
+      "platforms": [
+        "windows"
+      ],
+      "defaultDirectory": "${LOCALAPPDATA}/Programs/Gitland",
+      "homepage": "https://github.com/fezcode/gitland",
+      "artifacts": []
+    },
+    {
       "id": "io.hisashi.hisashi",
       "name": "Hisashi",
-      "version": "0.6.14",
+      "version": "0.6.15",
       "publisher": "Samil Bulbul",
       "category": "Utilities",
       "tagline": "Make yourself at home.",
@@ -98,7 +118,7 @@
     {
       "id": "io.timp.timp",
       "name": "Timp",
-      "version": "0.12.2",
+      "version": "0.13.0",
       "publisher": "Şamil Bülbül (Fezcode)",
       "category": "Media",
       "tagline": "Less interface. More music.",
@@ -118,7 +138,7 @@
     {
       "id": "io.tivi.tivi",
       "name": "tivi",
-      "version": "0.4.1",
+      "version": "0.5.0",
       "publisher": "Şamil Bülbül (Fezcode)",
       "category": "Media",
       "tagline": "Press play. Settle in.",
@@ -138,7 +158,7 @@
     {
       "id": "io.pidi.pidi",
       "name": "pidi",
-      "version": "0.2.2",
+      "version": "0.3.0",
       "publisher": "Şamil Bülbül (Fezcode)",
       "category": "Productivity",
       "tagline": "A fresh page.",
@@ -158,7 +178,7 @@
     {
       "id": "com.fezcode.cogas",
       "name": "Cogas",
-      "version": "0.15.2",
+      "version": "0.17.0",
       "publisher": "Fezcode",
       "category": "Gaming",
       "tagline": "All your games. One library.",
@@ -178,7 +198,7 @@
     {
       "id": "com.fezcode.typewriter",
       "name": "Typewriter",
-      "version": "0.4.0",
+      "version": "0.5.0",
       "publisher": "Fezcode",
       "category": "Creative",
       "tagline": "Just you and the next sentence.",
@@ -195,8 +215,8 @@
       "homepage": "https://github.com/fezcode/typewriter",
       "artifacts": [
         {
-          "file": "Typewriter-Setup-0.4.0.exe",
-          "bytes": 17938960,
+          "file": "Typewriter-Setup-0.5.0.exe",
+          "bytes": 22555949,
           "platform": "windows",
           "format": "forge-exe"
         }
@@ -205,7 +225,7 @@
     {
       "id": "com.fezcode.xboard",
       "name": "xboard",
-      "version": "2.0.3",
+      "version": "2.0.4",
       "publisher": "Fezcode",
       "category": "Utilities",
       "tagline": "A different way to type.",
@@ -222,8 +242,8 @@
       "homepage": "https://github.com/fezcode/xboard",
       "artifacts": [
         {
-          "file": "xboard-Setup-2.0.3.exe",
-          "bytes": 28179632,
+          "file": "xboard-Setup-2.0.4.exe",
+          "bytes": 28181528,
           "platform": "windows",
           "format": "forge-exe"
         }
@@ -247,14 +267,7 @@
       ],
       "defaultDirectory": "${LOCALAPPDATA}/Programs/osXos",
       "homepage": "https://github.com/fezcode/osXos",
-      "artifacts": [
-        {
-          "file": "osXos-Setup-0.1.0.exe",
-          "bytes": 72677487,
-          "platform": "windows",
-          "format": "forge-exe"
-        }
-      ]
+      "artifacts": []
     }
   ]
 }
