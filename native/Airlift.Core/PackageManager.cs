@@ -65,6 +65,25 @@ public sealed class PackageManager : IDisposable
     }
     public void Pause(string id) { if (_cancellation.TryGetValue(id, out var cts) && Store.Get<Operation>("operations", id)?.CanCancel == true) cts.Cancel(); }
     public void ClearHistory() { foreach (var op in Store.All<Operation>("operations").Where(o => !o.Active)) Store.Remove("operations", op.Id); Changed?.Invoke(); }
+    private Dictionary<string, string> CacheInstalledVersions()
+    {
+        var versions = new Dictionary<string, string>();
+        foreach (var app in Apps.Append(SelfUpdater.App))
+            if (_provider.FindInstalled(app) is { } installed) versions[app.Id] = installed.Version;
+        if (!versions.TryGetValue(SelfUpdater.App.Id, out var registered) || SemVersion.IsNewer(AppVersion.Current, registered))
+            versions[SelfUpdater.App.Id] = AppVersion.Current;
+        return versions;
+    }
+    public IReadOnlyList<CachedInstaller> FindOldInstallers()
+    {
+        using var lease = Store.AcquireOperationLock();
+        return new InstallerCache(Store).FindOld(CacheInstalledVersions());
+    }
+    public CacheCleanupResult ClearOldInstallers(IReadOnlyList<CachedInstaller> preview)
+    {
+        using var lease = Store.AcquireOperationLock();
+        return new InstallerCache(Store).ClearOld(CacheInstalledVersions(), preview.Select(i => i.Path).ToHashSet());
+    }
     public async Task ExecuteAsync(CatalogApp app, string action, bool allowUnverified = false, CancellationToken ct = default, bool silentUpdate = false)
     {
         if (action is not ("install" or "update" or "download" or "uninstall")) throw new ArgumentException("Unsupported action.");

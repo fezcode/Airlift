@@ -12,7 +12,9 @@ public sealed partial class MainWindow
 {
     private void BuildDownloads(StackPanel content)
     {
-        content.Children.Add(Ui.Between(Ui.Text("Activity", 18), Ui.Button("Clear completed", () => { _manager.ClearHistory(); Render(); }, "link")));
+        content.Children.Add(Ui.Between(Ui.Text("Activity", 18), Ui.Row(10,
+            Ui.AsyncButton("Clear old installers", ClearOldInstallers),
+            Ui.Button("Clear completed", () => { _manager.ClearHistory(); Render(); }, "link"))));
         var operations = _manager.Store.All<Operation>("operations").OrderByDescending(o => o.Started).ToList();
         if (operations.Count == 0) { content.Children.Add(Empty("A clear runway.", "Downloads, installations and updates will appear here.")); return; }
         foreach (var operation in operations)
@@ -82,9 +84,26 @@ public sealed partial class MainWindow
         var inventory = Ui.Between(Ui.Stack(5, Ui.Text("Installed apps", 13), Ui.MutedText("Reconcile Airlift with installed Forge apps on this computer.", 11)), Ui.AsyncButton("Refresh inventory", async () => { try { await Task.Run(_manager.RefreshInventory); Notice("Installed apps refreshed."); Render(); } catch (Exception e) { Notice(e.Message); } }));
         var storage = Ui.Between(Ui.Stack(5, Ui.Text("Local storage", 13), Ui.MutedText(_manager.Store.Root, 10)), Ui.AsyncButton("Open folder", async () => await Launcher.LaunchDirectoryInfoAsync(new DirectoryInfo(_manager.Store.Root))));
         content.Children.Add(Ui.Card(Ui.Stack(18, Ui.Text("Your workspace", 19), inventory, storage)));
+        content.Children.Add(Ui.Card(Ui.Stack(14, Ui.Text("Installer cache", 19),
+            Ui.MutedText("Remove downloaded installers older than your installed apps, including Airlift. Current versions, newer updates and unfinished downloads are kept.", 12),
+            Ui.AsyncButton("Clear old installers", ClearOldInstallers))));
         var setupActions = Ui.Row(10, Ui.AsyncButton("Export setup", ExportSetup), Ui.AsyncButton("Import setup", ImportSetup));
         content.Children.Add(Ui.Card(Ui.Stack(17, Ui.Text("Take your setup with you", 19), Ui.MutedText("Export app identities, version pins and channel preferences. Importing updates preferences; it does not install or remove applications.", 12), setupActions)));
         content.Children.Add(SelfUpdateCard());
+    }
+    private async Task ClearOldInstallers()
+    {
+        try
+        {
+            var old = await Task.Run(_manager.FindOldInstallers);
+            if (old.Count == 0) { Notice("No old installers to clear."); return; }
+            if (!await Confirm("Clear old installers?", $"Remove {old.Count} cached installers and free {Ui.Bytes(old.Sum(i => i.Bytes))}? Only versions older than your installed apps will be removed.", "Clear installers")) return;
+            var result = await Task.Run(() => _manager.ClearOldInstallers(old));
+            Notice($"Removed {result.Removed} installers · freed {Ui.Bytes(result.Bytes)}." + (result.Skipped > 0 ? $" Kept {result.Skipped} files that are in use or no longer eligible." : ""));
+            Render();
+        }
+        catch (IOException) { Notice("Finish the active download or installation, then try clearing installers again."); }
+        catch (Exception e) { Notice("Could not clear installers: " + e.Message); }
     }
     private async Task ExportSetup()
     {
@@ -219,4 +238,3 @@ public sealed partial class MainWindow
         await Launcher.LaunchUriAsync(uri);
     }
 }
-

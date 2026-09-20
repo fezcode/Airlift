@@ -23,6 +23,26 @@ public static class TestAppBuilder
 public sealed class DesktopTests
 {
     [AvaloniaFact]
+    public async Task InstallerCleanupRequiresReviewAndCancelKeepsFiles()
+    {
+        var store = new StateStore(CoreTests.TestDirectory());
+        var directory = Path.Combine(store.Root, "downloads", CoreTests.App.Id, "123"); Directory.CreateDirectory(directory);
+        var file = Path.Combine(directory, "old.exe"); File.WriteAllBytes(file, CoreTests.ForgeFixture(version: "0.1.0"));
+        using var manager = new PackageManager(store, provider: new UpdateOperationTests.UpdatingProvider());
+        var window = new MainWindow(manager, false); window.Show(); window.Navigate("Settings"); window.UpdateLayout(); Dispatcher.UIThread.RunJobs();
+        SaveScreenshot(window, "installer-cache-settings");
+        window.GetVisualDescendants().OfType<Button>().Single(b => b.Content as string == "Clear old installers").RaiseEvent(new Avalonia.Interactivity.RoutedEventArgs(Button.ClickEvent));
+        for (var i = 0; i < 200 && !window.OwnedWindows.Any(); i++) { await Task.Delay(10); Dispatcher.UIThread.RunJobs(); }
+        var review = Assert.Single(window.OwnedWindows); review.UpdateLayout(); Dispatcher.UIThread.RunJobs();
+        Assert.True(File.Exists(file)); SaveScreenshot(review, "installer-cache-review");
+        review.Close(false); Dispatcher.UIThread.RunJobs();
+        Assert.True(File.Exists(file));
+        window.Navigate("Downloads"); window.UpdateLayout(); Dispatcher.UIThread.RunJobs();
+        Assert.Single(window.GetVisualDescendants().OfType<Button>(), b => b.Content as string == "Clear old installers");
+        window.Close();
+    }
+
+    [AvaloniaFact]
     public async Task ManagedSilentChoiceIsOnlyOfferedForUpdatesAndClearsTheOldVersion()
     {
         if (HostPlatform.Os != "windows" || HostPlatform.Arch != "x64") return;

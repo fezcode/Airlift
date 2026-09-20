@@ -147,6 +147,13 @@ These flows are adapted from clockt's `AGENTS.md`.
 - Inventory reconciliation must use the package operation lock so an old
   registry snapshot cannot overwrite a completed update. Refresh when returning
   to Airlift and after operations; version labels and update counts use that state.
+- Installer cleanup is an explicit user action in Settings and Downloads. Delete
+  only verified Forge installers in Airlift's download cache whose embedded
+  identity matches the app and whose version is older than its installed version.
+  Include Airlift itself; keep current/newer versions, unknown files, partial
+  downloads, active operations and linked paths. Recheck eligibility under the
+  package operation lock after the user reviews the cleanup preview. Never sweep
+  general Windows temp folders, user settings, or `dist/installer` with this action.
 - Sidebar navigation must scroll within its grid row at short window heights.
   Keep Settings/profile in a separate footer and verify navigation remains reachable.
 - Airlift tracks its own stable releases from `fezcode/Airlift`, separately from
