@@ -90,6 +90,10 @@ public sealed partial class MainWindow
         var setupActions = Ui.Row(10, Ui.AsyncButton("Export setup", ExportSetup), Ui.AsyncButton("Import setup", ImportSetup));
         content.Children.Add(Ui.Card(Ui.Stack(17, Ui.Text("Take your setup with you", 19), Ui.MutedText("Export app identities, version pins and channel preferences. Importing updates preferences; it does not install or remove applications.", 12), setupActions)));
         content.Children.Add(SelfUpdateCard());
+        content.Children.Add(Ui.Card(Ui.Stack(14, Ui.Text("Support Airlift", 19),
+            Ui.MutedText("Airlift is free and open source. A star on GitHub costs you one click and helps other people find it.", 12),
+            Ui.Row(9, Ui.AsyncButton("★  Star on GitHub", () => OpenUrl(SelfUpdater.RepositoryUrl), "primary"),
+                Ui.AsyncButton("Report an issue  ↗", () => OpenUrl(SelfUpdater.RepositoryUrl + "/issues"), "link")))));
     }
     private async Task ClearOldInstallers()
     {
@@ -136,7 +140,7 @@ public sealed partial class MainWindow
         var pinned = new CheckBox { Name = "PinVersion", Content = "Pin installed version (exclude from updates)", IsChecked = _manager.Preferences(app).Pinned, IsEnabled = _manager.Installed(app) != null };
         var previews = new CheckBox { Name = "IncludePrereleases", Content = "Include prereleases", IsChecked = _manager.Preferences(app).IncludePrerelease };
         var body = Ui.Stack(18, Ui.MutedText(app.Description, 13), latest, Ui.Separator(), facts, Ui.Stack(4, pinned, previews), status);
-        var header = Ui.Between(Ui.Row(17, Ui.Icon(app, 56), Ui.Stack(6, Ui.Text(app.Name, 28, weight: FontWeight.SemiBold), Ui.MutedText(app.Tagline, 12))), Ui.Button("Close", window.Close, "link"));
+        var header = Ui.Row(17, Ui.Icon(app, 56), Ui.Stack(6, Ui.Text(app.Name, 28, weight: FontWeight.SemiBold), Ui.MutedText(app.Tagline, 12)));
         var actions = new WrapPanel { Orientation = Orientation.Horizontal };
         var tabs = Ui.Row(8); var overviewTab = Ui.Button("Overview", () => { }, "chip"); var releasesTab = Ui.Button("Releases", () => { }, "chip");
         tabs.Children.Add(overviewTab); tabs.Children.Add(releasesTab);
@@ -195,11 +199,11 @@ public sealed partial class MainWindow
                 RefreshOverview(); status.Text = "Could not refresh this channel: " + error.Message; status.IsVisible = true;
             }
         };
-        var layout = new Grid { RowDefinitions = new RowDefinitions("Auto,Auto,*,Auto"), Margin = new Thickness(27) };
+        var layout = new Grid { RowDefinitions = new RowDefinitions("Auto,Auto,*,Auto"), Margin = new Thickness(27, 6, 27, 27) };
         header.Margin = new Thickness(0, 0, 24, 22); layout.Children.Add(header); layout.Children.Add(tabs); Grid.SetRow(tabs, 1);
         layout.Children.Add(scroll); Grid.SetRow(scroll, 2);
         var actionbar = new Border { Child = actions, Padding = new Thickness(0, 16, 0, 0), BorderBrush = Ui.Line, BorderThickness = new Thickness(0, 1, 0, 0) }; layout.Children.Add(actionbar); Grid.SetRow(actionbar, 3);
-        RefreshOverview(); SelectTab(showReleases); window.Content = layout;
+        RefreshOverview(); SelectTab(showReleases); Frame(window, layout);
         window.Opened += async (_, _) => await history.LoadAsync();
         await window.ShowDialog(this); Render();
     }
@@ -224,13 +228,25 @@ public sealed partial class MainWindow
         catch (Exception e) { Notice(e.Message); }
         await Dispatcher.UIThread.InvokeAsync(Render);
     }
-    private static Window Dialog(string title, double width) => new() { Title = title, Width = width, SizeToContent = SizeToContent.Height, MaxHeight = 800, CanResize = false, WindowStartupLocation = WindowStartupLocation.CenterOwner };
+    private static Window Dialog(string title, double width)
+    {
+        var window = new Window { Title = title, Width = width, SizeToContent = SizeToContent.Height, MaxHeight = 800, CanResize = false, WindowStartupLocation = WindowStartupLocation.CenterOwner };
+        Chrome.Extend(window); return window;
+    }
+    // Every Airlift window wears the same frame: a drag strip with our close glyph, then the body.
+    private static void Frame(Window window, Control body)
+    {
+        var layout = new Grid { RowDefinitions = new RowDefinitions($"{Chrome.Height},*") };
+        layout.Children.Add(Chrome.TitleBar(window, Ui.MutedText("Airlift", 10), resizable: false));
+        Grid.SetRow(body, 1); layout.Children.Add(body);
+        window.Content = layout; Chrome.KeepInsideScreen(window, layout);
+    }
     private async Task<bool> Confirm(string title, string message, string action, bool danger = false, Control? option = null)
     {
         var window = Dialog(title, 485); var body = Ui.Stack(22, Ui.Text(title, 23, weight: FontWeight.SemiBold), Ui.MutedText(message, 12));
         if (option != null) body.Children.Add(option);
         var buttons = Ui.Row(9, Ui.Button("Cancel", () => window.Close(false)), Ui.Button(action, () => window.Close(true), danger ? "danger" : "primary")); buttons.HorizontalAlignment = HorizontalAlignment.Right; body.Children.Add(buttons);
-        window.Content = new Border { Child = body, Padding = new Thickness(28) }; return await window.ShowDialog<bool>(this);
+        Frame(window, new Border { Child = body, Padding = new Thickness(28, 10, 28, 28) }); return await window.ShowDialog<bool>(this);
     }
     private async Task OpenUrl(string url)
     {

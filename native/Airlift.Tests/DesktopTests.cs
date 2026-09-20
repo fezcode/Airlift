@@ -3,6 +3,7 @@ using Airlift.Desktop;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.Presenters;
+using Avalonia.Controls.Chrome;
 using Avalonia.Controls.Documents;
 using Avalonia.Input;
 using Avalonia.Layout;
@@ -72,6 +73,71 @@ public sealed class DesktopTests
             Assert.DoesNotContain(main.GetVisualDescendants().OfType<Button>(), b => b.Content as string == "Update");
             main.Close();
         }
+    }
+
+    [AvaloniaFact]
+    public void SidebarFooterReportsTheRunningVersionAndAnAvailableUpdate()
+    {
+        using var manager = new PackageManager(new StateStore(CoreTests.TestDirectory()));
+        var window = new MainWindow(manager, false); window.Show(); window.UpdateLayout(); Dispatcher.UIThread.RunJobs();
+        var footer = window.GetVisualDescendants().OfType<StackPanel>().Single(c => c.Name == "SidebarFooter");
+        var lines = footer.GetVisualDescendants().OfType<TextBlock>().Select(t => t.Text).ToList();
+        Assert.Contains("Airlift", lines); Assert.Contains(AppVersion.Current, lines);
+        Assert.Contains("Updates not checked yet", lines);
+        Assert.DoesNotContain(window.GetVisualDescendants().OfType<TextBlock>(), t => t.Text == "Local workspace");
+        var dot = footer.GetVisualDescendants().OfType<Avalonia.Controls.Shapes.Ellipse>().Single();
+        Assert.NotEqual(Color.Parse("#D7F59A"), Assert.IsAssignableFrom<ISolidColorBrush>(dot.Fill).Color);
+
+        manager.Store.Put("releases", SelfUpdater.App.Id + ":stable", new ReleaseCache(SelfUpdateTests.Release([1]), null, DateTimeOffset.UtcNow, null));
+        window.Navigate("Discover"); window.UpdateLayout(); Dispatcher.UIThread.RunJobs();
+        var state = footer.GetVisualDescendants().OfType<TextBlock>().Single(t => t.Text?.StartsWith("Version ") == true);
+        Assert.Equal("Version 999.0.0 available", state.Text);
+        Assert.Equal(Color.Parse("#D7F59A"), Assert.IsAssignableFrom<ISolidColorBrush>(dot.Fill).Color);
+        // The card is the shortest route from "an update exists" to the page that applies it.
+        footer.GetVisualDescendants().OfType<Button>().Single(b => b.Classes.Contains("version")).RaiseEvent(new Avalonia.Interactivity.RoutedEventArgs(Button.ClickEvent));
+        window.UpdateLayout(); Dispatcher.UIThread.RunJobs();
+        Assert.Contains(window.GetVisualDescendants().OfType<TextBlock>(), t => t.Text == "Workspace   ›   Updates");
+        SaveScreenshot(window, "sidebar-version-card"); window.Close();
+    }
+
+    [AvaloniaFact]
+    public void SettingsOffersAGitHubStarThatPointsAtAirliftsOwnRepository()
+    {
+        Assert.Equal("https://github.com/fezcode/Airlift", SelfUpdater.RepositoryUrl);
+        using var manager = new PackageManager(new StateStore(CoreTests.TestDirectory()));
+        var window = new MainWindow(manager, false); window.Show(); window.Navigate("Settings"); window.UpdateLayout(); Dispatcher.UIThread.RunJobs();
+        Assert.Contains(window.GetVisualDescendants().OfType<TextBlock>(), t => t.Text == "Support Airlift");
+        var star = window.GetVisualDescendants().OfType<Button>().Single(b => b.Content as string == "★  Star on GitHub");
+        Assert.True(star.IsEffectivelyVisible); Assert.Contains("primary", star.Classes);
+        Assert.Contains(window.GetVisualDescendants().OfType<Button>(), b => b.Content as string == "Report an issue  ↗");
+        SaveScreenshot(window, "settings-support"); window.Close();
+    }
+
+    [AvaloniaFact]
+    public void WindowWearsItsOwnChromeAndWidensGuttersWhenMaximized()
+    {
+        using var manager = new PackageManager(new StateStore(CoreTests.TestDirectory()));
+        var window = new MainWindow(manager, false); window.Show(); window.UpdateLayout(); Dispatcher.UIThread.RunJobs();
+        Assert.True(window.ExtendClientAreaToDecorationsHint);
+        var buttons = window.GetVisualDescendants().OfType<StackPanel>().Single(p => p.Name == "WindowButtons")
+            .Children.OfType<Button>().ToList();
+        Assert.Equal(3, buttons.Count);
+        Assert.Equal(new[] { "Minimize", "Maximize", "Close" }, buttons.Select(Avalonia.Automation.AutomationProperties.GetName));
+        Assert.All(buttons, b => Assert.NotEqual(WindowDecorationsElementRole.None, WindowDecorationProperties.GetElementRole(b)));
+        var chrome = window.GetVisualDescendants().OfType<Border>().First(b => b.Name == "WindowChrome");
+        Assert.Equal(WindowDecorationsElementRole.TitleBar, WindowDecorationProperties.GetElementRole(chrome));
+
+        var header = window.GetVisualDescendants().OfType<Grid>().Single(g => g.Name == "HeaderBar");
+        Assert.Equal(32, header.Margin.Left);
+        window.WindowState = WindowState.Maximized; window.UpdateLayout(); Dispatcher.UIThread.RunJobs();
+        Assert.Equal(44, header.Margin.Left);
+        Assert.Equal("Restore", Avalonia.Automation.AutomationProperties.GetName(buttons[1]));
+        var root = Assert.IsType<Grid>(window.Content);
+        Assert.Equal(window.OffScreenMargin, root.Margin); // Maximized content must clear the off-screen resize border.
+        window.WindowState = WindowState.Normal; window.UpdateLayout(); Dispatcher.UIThread.RunJobs();
+        Assert.Equal(32, header.Margin.Left);
+        Assert.Equal("Maximize", Avalonia.Automation.AutomationProperties.GetName(buttons[1]));
+        window.Close();
     }
 
     [AvaloniaFact]

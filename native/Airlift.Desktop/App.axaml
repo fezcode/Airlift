@@ -49,6 +49,25 @@
     <Style Selector="CheckBox:checked:pointerover /template/ Border#NormalRectangle, CheckBox:indeterminate:pointerover /template/ Border#NormalRectangle"><Setter Property="Background" Value="#E5FFB7"/></Style>
     <Style Selector="CheckBox:checked:pressed /template/ Border#NormalRectangle, CheckBox:indeterminate:pressed /template/ Border#NormalRectangle"><Setter Property="Background" Value="#BEDD81"/></Style>
     <Style Selector="CheckBox:disabled"><Setter Property="Opacity" Value="0.5"/></Style>
+    <!-- Airlift draws its own window frame: caption glyphs inherit the button Foreground. -->
+    <Style Selector="Button.chrome">
+      <Setter Property="Background" Value="Transparent"/><Setter Property="BorderThickness" Value="0"/>
+      <Setter Property="CornerRadius" Value="0"/><Setter Property="Width" Value="46"/><Setter Property="Height" Value="38"/>
+      <Setter Property="MinHeight" Value="0"/><Setter Property="Padding" Value="0"/><Setter Property="Foreground" Value="#8E948A"/>
+    </Style>
+    <Style Selector="Button.chrome:pointerover"><Setter Property="Foreground" Value="#E8EAE5"/></Style>
+    <Style Selector="Button.chrome:pressed"><Setter Property="Foreground" Value="#E8EAE5"/></Style>
+    <Style Selector="Button.chrome.close:pointerover, Button.chrome.close:pressed"><Setter Property="Foreground" Value="#FFFFFF"/></Style>
+    <Style Selector="Button.chrome:pointerover /template/ ContentPresenter#PART_ContentPresenter"><Setter Property="Background" Value="#252B24"/><Setter Property="BorderBrush" Value="Transparent"/></Style>
+    <Style Selector="Button.chrome:pressed /template/ ContentPresenter#PART_ContentPresenter"><Setter Property="Background" Value="#2F362D"/><Setter Property="BorderBrush" Value="Transparent"/></Style>
+    <Style Selector="Button.chrome.close:pointerover /template/ ContentPresenter#PART_ContentPresenter"><Setter Property="Background" Value="#C0392B"/><Setter Property="BorderBrush" Value="Transparent"/></Style>
+    <Style Selector="Button.chrome.close:pressed /template/ ContentPresenter#PART_ContentPresenter"><Setter Property="Background" Value="#9A2C21"/><Setter Property="BorderBrush" Value="Transparent"/></Style>
+    <Style Selector="Button.version">
+      <Setter Property="Background" Value="#191E17"/><Setter Property="BorderBrush" Value="#30362C"/><Setter Property="CornerRadius" Value="9"/>
+      <Setter Property="Padding" Value="11,10"/><Setter Property="MinHeight" Value="0"/><Setter Property="HorizontalContentAlignment" Value="Stretch"/>
+    </Style>
+    <Style Selector="Button.version:pointerover /template/ ContentPresenter#PART_ContentPresenter"><Setter Property="Background" Value="#1E2419"/><Setter Property="BorderBrush" Value="#4B593D"/></Style>
+    <Style Selector="Button.version:pressed /template/ ContentPresenter#PART_ContentPresenter"><Setter Property="Background" Value="#20291C"/><Setter Property="BorderBrush" Value="#4B593D"/></Style>
     <Style Selector="Border.app-card"><Setter Property="BorderBrush" Value="#30362C"/></Style>
     <Style Selector="Border.app-card:pointerover"><Setter Property="BorderBrush" Value="#4B593D"/></Style>
     <Style Selector="TextBox"><Setter Property="CornerRadius" Value="7"/><Setter Property="Background" Value="#181C17"/><Setter Property="BorderBrush" Value="#30362C"/><Setter Property="FontSize" Value="12"/><Setter Property="Padding" Value="12,9"/></Style>

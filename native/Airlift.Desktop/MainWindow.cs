@@ -20,27 +20,40 @@ public sealed partial class MainWindow : Window
     private readonly Dictionary<string, Button> _nav = [];
     private readonly TextBlock _updateCount = Ui.Text("", 10, "#25311C", FontWeight.SemiBold);
     private Border? _updateBadge;
+    private readonly Ellipse _footerDot = new() { Width = 7, Height = 7, Fill = Ui.Muted, VerticalAlignment = VerticalAlignment.Center };
+    private readonly TextBlock _footerState = Ui.MutedText("Updates not checked yet", 10);
+    private readonly Grid _header;
+    private readonly Border _status;
     private readonly DispatcherTimer _timer = new() { Interval = TimeSpan.FromSeconds(1) };
     private string _page = "Discover", _category = "All apps", _query = "", _collection = "Everyday essentials";
     private bool _checking, _dirty, _list, _initializing;
     private DateTimeOffset _lastScheduledCheck = DateTimeOffset.MinValue;
     private DateTimeOffset _lastInventoryCheck = DateTimeOffset.MinValue;
     private bool _refreshingInventory;
+    // Content gutters widen once the window fills the screen, so a maximized layout breathes.
+    private double Gutter => WindowState == WindowState.Maximized ? 44 : 32;
     public MainWindow(PackageManager manager, bool startServices = true, ISelfUpdateLauncher? selfUpdateLauncher = null)
     {
         _selfUpdateLauncher = selfUpdateLauncher ?? new SelfUpdateLauncher(manager.Store);
         _manager = manager; _initializing = startServices; Title = "Airlift by Fezcode"; Width = 1330; Height = 920; MinWidth = 960; MinHeight = 640;
         using (var icon = Avalonia.Platform.AssetLoader.Open(new Uri("avares://Airlift/Assets/airlift.ico"))) Icon = new WindowIcon(icon);
         WindowStartupLocation = WindowStartupLocation.CenterScreen;
+        Chrome.Extend(this);
         var root = new Grid { ColumnDefinitions = new ColumnDefinitions("228,*") };
         root.Children.Add(BuildSidebar());
-        var main = new Grid { RowDefinitions = new RowDefinitions("70,*,38") }; Grid.SetColumn(main, 1); root.Children.Add(main);
-        var header = Ui.Between(_breadcrumb, _search); header.Margin = new Thickness(32, 16);
-        main.Children.Add(new Border { Child = header, BorderBrush = Ui.Line, BorderThickness = new Thickness(0, 0, 0, 1) });
+        var main = new Grid { RowDefinitions = new RowDefinitions($"{Chrome.Height},70,*,38") }; Grid.SetColumn(main, 1); root.Children.Add(main);
+        main.Children.Add(Chrome.TitleBar(this, null, resizable: true));
+        _header = Ui.Between(_breadcrumb, _search); _header.Name = "HeaderBar"; _header.Margin = new Thickness(Gutter, 16);
+        var headerBar = new Border { Child = _header, BorderBrush = Ui.Line, BorderThickness = new Thickness(0, 0, 0, 1) };
+        Grid.SetRow(headerBar, 1); main.Children.Add(headerBar);
         var scroll = new ScrollViewer { Content = _body, HorizontalScrollBarVisibility = Avalonia.Controls.Primitives.ScrollBarVisibility.Disabled };
-        Grid.SetRow(scroll, 1); main.Children.Add(scroll);
-        var status = new Border { Child = _notice, Padding = new Thickness(32, 10), BorderBrush = Ui.Line, BorderThickness = new Thickness(0, 1, 0, 0) }; Grid.SetRow(status, 2); main.Children.Add(status);
+        Grid.SetRow(scroll, 2); main.Children.Add(scroll);
+        _status = new Border { Child = _notice, Padding = new Thickness(Gutter, 10), BorderBrush = Ui.Line, BorderThickness = new Thickness(0, 1, 0, 0) };
+        Grid.SetRow(_status, 3); main.Children.Add(_status);
         Content = root;
+        Chrome.KeepInsideScreen(this, root);
+        // A maximized window gets wider gutters, so the layout breathes instead of stretching.
+        PropertyChanged += (_, e) => { if (e.Property == WindowStateProperty) Render(); };
         _search.TextChanged += (_, _) =>
         {
             var query = _search.Text ?? "";
@@ -103,6 +116,7 @@ public sealed partial class MainWindow : Window
         var heading = Ui.Stack(31,
             Ui.Row(12, logo, Ui.Stack(4, Ui.Text("airlift", 31, weight: FontWeight.Bold), Ui.MutedText("B Y  F E Z C O D E", 8))),
             Ui.Card(Ui.Stack(5, Ui.Text("Personal workspace", 12), Ui.MutedText("Your apps. Your space.", 10)), 13));
+        Chrome.Draggable(heading); // The sidebar reaches the top edge, so its brand block drags the window.
         grid.Children.Add(heading);
         var navigation = Ui.Stack(5); navigation.Margin = new Thickness(0, 20, 0, 12);
         navigation.Children.Add(Ui.MutedText("W O R K S P A C E", 9));
@@ -123,13 +137,37 @@ public sealed partial class MainWindow : Window
             VerticalScrollBarVisibility = Avalonia.Controls.Primitives.ScrollBarVisibility.Auto, ClipToBounds = true };
         Grid.SetRow(navigationScroll, 1); grid.Children.Add(navigationScroll);
         var settings = Brand.Navigation("Settings", () => Navigate("Settings")); _nav["Settings"] = settings;
-        var bottom = Ui.Stack(12, Ui.Separator(), settings,
-            Ui.Row(12, Ui.Card(Ui.Text("F", 16), 8, "#303C25"), Ui.Stack(4, Ui.Text("Fezcode", 12), Ui.MutedText("Local workspace", 10))));
+        var bottom = Ui.Stack(12, Ui.Separator(), settings, VersionCard());
         bottom.Name = "SidebarFooter"; Grid.SetRow(bottom, 2); grid.Children.Add(bottom);
         return new Border { Child = grid, Background = Brush.Parse("#151715"), BorderBrush = Ui.Line, BorderThickness = new Thickness(0, 0, 1, 0) };
     }
+    // The footer used to be a decorative profile chip. It now reports the running version and
+    // whether a newer Airlift release is waiting, and opens Updates when one is.
+    private Control VersionCard()
+    {
+        var card = Ui.Button("", () => Navigate("Updates"), "version");
+        card.HorizontalAlignment = HorizontalAlignment.Stretch; card.HorizontalContentAlignment = HorizontalAlignment.Stretch;
+        card.Content = Ui.Stack(8,
+            Ui.Between(Ui.Row(10, Brand.Mark(22), Ui.Text("Airlift", 12, weight: FontWeight.SemiBold)), Ui.MutedText(AppVersion.Current, 10)),
+            Ui.Row(8, _footerDot, _footerState));
+        Avalonia.Automation.AutomationProperties.SetName(card, "Airlift version and update status");
+        return card;
+    }
+    private void RenderVersionCard()
+    {
+        var cache = _manager.SelfUpdate.Cached;
+        var (text, colour) = _checkingSelf ? ("Checking for updates…", "#92988D")
+            : _manager.SelfUpdate.HasUpdate ? ($"Version {cache!.Release!.Version} available", "#D7F59A")
+            : (_selfCheckError ?? cache?.Error) != null ? ("Update check unavailable", "#92988D")
+            : cache?.Release != null ? ("Up to date", "#92988D")
+            : ("Updates not checked yet", "#92988D");
+        _footerState.Text = text; _footerState.Foreground = Brush.Parse(colour);
+        _footerDot.Fill = Brush.Parse(_manager.SelfUpdate.HasUpdate ? "#D7F59A" : "#4E5A44");
+    }
     private void Render()
     {
+        _header.Margin = new Thickness(Gutter, 16); _status.Padding = new Thickness(Gutter, 10);
+        RenderVersionCard();
         foreach (var (name, button) in _nav) button.Classes.Set("active", name == _page);
         var updateCount = _manager.Apps.Count(_manager.HasUpdate) + (_manager.SelfUpdate.HasUpdate ? 1 : 0); _updateCount.Text = updateCount.ToString();
         if (_updateBadge != null) _updateBadge.IsVisible = updateCount > 0;
@@ -148,7 +186,7 @@ public sealed partial class MainWindow : Window
         var heading = Ui.Stack(9, Ui.MutedText(_page == "Discover" ? "A LITTLE DISCOVERY GOES A LONG WAY" : "YOUR WORKSPACE / " + _page.ToUpperInvariant(), 9),
             Ui.Text(title, 26, weight: FontWeight.SemiBold), Ui.MutedText(subtitle, 12));
         var platform = Ui.Card(Ui.Text($"{HostPlatform.Os.ToUpperInvariant()}   ·   {HostPlatform.Arch}", 10), 10); platform.VerticalAlignment = VerticalAlignment.Center;
-        var content = Ui.Stack(21, Ui.Between(heading, platform)); content.Margin = new Thickness(32, 30, 32, 22);
+        var content = Ui.Stack(21, Ui.Between(heading, platform)); content.Margin = new Thickness(Gutter, 30, Gutter, 22);
         switch (_page)
         {
             case "Discover": case "My library": case "Updates": BuildCatalog(content); break;

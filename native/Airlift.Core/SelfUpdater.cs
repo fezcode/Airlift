@@ -9,6 +9,7 @@ public sealed class SelfUpdater(StateStore store, GitHubClient github, Downloade
 {
     // The public release source is independent of the third-party app catalog.
     public const string Repository = "fezcode/Airlift";
+    public const string RepositoryUrl = "https://github.com/" + Repository;
     public static CatalogApp App { get; } = new("com.fezcode.airlift", "Airlift", AppVersion.Current,
         "Fezcode", "Utilities", "Your apps. In good hands.", "Discover and manage your apps.",
         "#D7F59A", "", "Airlift", Repository, "${LOCALAPPDATA}/Programs/Airlift");
