@@ -166,6 +166,14 @@ These flows are adapted from clockt's `AGENTS.md`.
   before launching. Reject downgrades against an existing installation. Close
   Airlift only after Setup starts; keep the app open on cancellation or failure.
   Other platforms offer release downloads until their installer mapping exists.
+- Colour belongs to a palette role, never a literal. `Airlift.Desktop/Theme.cs` holds one
+  `Palette` per theme; XAML reads `{DynamicResource Airlift.<Role>}` and C# reads
+  `Themes.Brush(p => p.<Role>)`. Adding a theme means adding a `Palette` and listing it in
+  `Themes.All`: every role is `required`, so an incomplete palette will not compile, and the
+  settings page builds its tiles from that list. Publish the palette before any control is
+  styled. Colour built in code is resolved once, so anything outside `Render` must be rebuilt
+  when the palette changes. Danger and the close button stay the same in every theme, and each
+  catalogued app keeps its own colour.
 - Measure app cards using their actual available panel width. Do not derive card
   widths from window dimensions; scrollbars, borders and padding can force an
   unintended wrap. Keep resize/filter coverage in the native layout tests.

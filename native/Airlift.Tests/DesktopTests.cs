@@ -194,6 +194,95 @@ public sealed class DesktopTests
     }
 
     [AvaloniaFact]
+    public void EveryThemeAnswersEveryRoleAndIsDistinct()
+    {
+        Assert.True(Themes.All.Count >= 2);
+        Assert.Equal(Themes.All.Count, Themes.All.Select(p => p.Id).Distinct().Count());
+        var roles = Themes.Entries(Themes.Default).Select(e => e.Key).ToList();
+        Assert.True(roles.Count > 40, $"expected a full palette, found {roles.Count} roles");
+        foreach (var palette in Themes.All)
+        {
+            Assert.False(string.IsNullOrWhiteSpace(palette.Name));
+            Assert.False(string.IsNullOrWhiteSpace(palette.Summary));
+            // Same roles in every theme, each a real colour: a new palette cannot be half-finished.
+            Assert.Equal(roles, Themes.Entries(palette).Select(e => e.Key).ToList());
+            foreach (var (key, hex) in Themes.Entries(palette))
+                Assert.True(System.Text.RegularExpressions.Regex.IsMatch(hex, "^#[0-9A-Fa-f]{6}$"), $"{palette.Id}.{key} = {hex}");
+        }
+        // Meaning, not mood: danger reads the same whichever theme is on.
+        Assert.Single(Themes.All.Select(p => p.DangerSurface).Distinct());
+        Assert.Equal(Themes.All.Count, Themes.All.Select(p => p.Accent).Distinct().Count());
+    }
+
+    [AvaloniaFact]
+    public void ChoosingAThemeRepaintsTheWindowAndOutlivesTheSession()
+    {
+        var store = new StateStore(CoreTests.TestDirectory());
+        using var manager = new PackageManager(store);
+        Themes.Apply(Themes.Default.Id, Application.Current);
+        var window = new MainWindow(manager, false); window.Show(); window.Navigate("Settings");
+        window.UpdateLayout(); Dispatcher.UIThread.RunJobs();
+
+        // Re-queried every time: switching palette rebuilds the sidebar, so a held reference goes stale.
+        Color SidebarColour() => Assert.IsAssignableFrom<ISolidColorBrush>(window.GetVisualDescendants()
+            .OfType<Border>().First(b => b.Name == "SidebarDrag").FindAncestorOfType<Border>()!.Background).Color;
+        var before = SidebarColour();
+
+        // Every theme gets a tile, so adding one needs no change here or in the settings page.
+        foreach (var palette in Themes.All)
+            Assert.Single(window.GetVisualDescendants().OfType<Button>(), b => b.Name == "ThemeTile." + palette.Id);
+
+        var other = Themes.All.First(p => p.Id != Themes.Default.Id);
+        window.GetVisualDescendants().OfType<Button>().Single(b => b.Name == "ThemeTile." + other.Id)
+            .RaiseEvent(new Avalonia.Interactivity.RoutedEventArgs(Button.ClickEvent));
+        window.UpdateLayout(); Dispatcher.UIThread.RunJobs();
+
+        Assert.Equal(other.Id, Themes.Current.Id);
+        Assert.Equal(other.Id, manager.Settings.Theme);
+        Assert.Equal(Color.Parse(other.Sidebar), SidebarColour());
+        Assert.NotEqual(before, SidebarColour());
+        Assert.Equal(other.Id, new StateStore(store.Root).Get<AppSettings>("settings", "main")!.Theme);
+        SaveScreenshot(window, "theme-" + other.Id);
+
+        window.Navigate("Discover"); window.UpdateLayout(); Dispatcher.UIThread.RunJobs();
+        SaveScreenshot(window, "discover-" + other.Id);
+        window.Close();
+        Themes.Apply(Themes.Default.Id, Application.Current); // Leave the shared application as we found it.
+    }
+
+    [AvaloniaFact]
+    public async Task ARefusedCheckReachesTheStatusBarAndAModal()
+    {
+        var store = new StateStore(CoreTests.TestDirectory());
+        var reset = DateTimeOffset.UtcNow.AddMinutes(30).ToUnixTimeSeconds();
+        using var http = new HttpClient(new ReleaseHistoryTests.Handler(_ =>
+        {
+            var response = new System.Net.Http.HttpResponseMessage(System.Net.HttpStatusCode.Forbidden);
+            response.Headers.TryAddWithoutValidation("X-RateLimit-Reset", reset.ToString());
+            return response;
+        }));
+        using var manager = new PackageManager(store, http);
+        var window = new MainWindow(manager, false); window.Show(); window.Navigate("Settings");
+        window.UpdateLayout(); Dispatcher.UIThread.RunJobs();
+        window.GetVisualDescendants().OfType<Button>().Single(b => b.Content as string == "Check for Airlift updates")
+            .RaiseEvent(new Avalonia.Interactivity.RoutedEventArgs(Button.ClickEvent));
+        for (var i = 0; i < 400 && !window.OwnedWindows.Any(); i++) { await Task.Delay(10); window.UpdateLayout(); Dispatcher.UIThread.RunJobs(); }
+
+        var dialog = Assert.Single(window.OwnedWindows);
+        dialog.UpdateLayout(); Dispatcher.UIThread.RunJobs();
+        var shown = dialog.GetVisualDescendants().OfType<TextBlock>().Select(t => t.Text ?? "").ToArray();
+        Assert.Contains(shown, t => t.Contains("could not check"));
+        Assert.Contains(shown, t => t.Contains("rate limit") || t.Contains("paused"));
+        SaveScreenshot(dialog, "check-failed-modal");
+        dialog.Close(); Dispatcher.UIThread.RunJobs();
+
+        // The same failure stays readable in the status bar after the modal is dismissed.
+        var status = window.GetVisualDescendants().OfType<TextBlock>().Single(t => t.Text?.StartsWith("Airlift’s release check could not run.") == true);
+        Assert.Equal(Color.Parse(Themes.Current.DangerText), Assert.IsAssignableFrom<ISolidColorBrush>(status.Foreground).Color);
+        window.Close();
+    }
+
+    [AvaloniaFact]
     public void MarkdownHeadingsGetRoomForTheirOwnTypeSize()
     {
         const string source = "# Gitland 0.9.0\n\n## Windows release\n\nBody copy sits at the paragraph size.";

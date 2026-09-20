@@ -20,20 +20,25 @@ public sealed partial class MainWindow
             (updater.HasUpdate ? $"Version {cache!.Release!.Version} is available" : cache?.Release != null ? "You’re running the latest Airlift version." : "Check for a new version of Airlift.");
         var actions = Ui.Row(8);
         if (updater.HasUpdate) actions.Children.Add(Ui.AsyncButton("Update Airlift", ReviewSelfUpdate, "primary", !_checkingSelf));
-        actions.Children.Add(Ui.AsyncButton(_checkingSelf ? "Checking…" : "Check for Airlift updates", () => CheckSelfUpdate(true), enabled: !_checkingSelf));
+        actions.Children.Add(Ui.AsyncButton(_checkingSelf ? "Checking…" : "Check for Airlift updates", () => CheckSelfUpdate(true, announce: true), enabled: !_checkingSelf));
         var card = Ui.Stack(14,
             Ui.Row(12, Brand.Mark(40), Ui.Text(AppVersion.Display, 18)), Ui.MutedText(text, 11), actions,
             Ui.AsyncButton(SelfUpdater.Repository + " · Release notes ↗", () => OpenUrl($"https://github.com/{SelfUpdater.Repository}/releases"), "link"));
-        return Ui.Card(card, 18, updater.HasUpdate ? "#232E1C" : "#191E17");
+        return Ui.Card(card, 18, updater.HasUpdate ? p => p.CardAccent : p => p.Card);
     }
 
-    private async Task CheckSelfUpdate(bool force)
+    private async Task CheckSelfUpdate(bool force, bool announce = false)
     {
         if (_checkingSelf) return;
         _checkingSelf = true; _selfCheckError = null; Render();
         try { await _manager.SelfUpdate.CheckAsync(force); }
         catch (Exception error) { _selfCheckError = error.Message; }
         finally { _checkingSelf = false; Render(); }
+        if (!announce) return;
+        // A check the person asked for owes them its outcome, not silence.
+        var reason = _selfCheckError ?? _manager.SelfUpdate.Cached?.Error;
+        if (reason == null) Notice(_manager.SelfUpdate.HasUpdate ? "A new version of Airlift is available." : "Airlift is up to date.");
+        else { Notice("Airlift’s release check could not run. " + reason, problem: true); await Problem("Airlift could not check for updates", ReasonAdvice(reason), reason); }
     }
 
     private async Task ReviewSelfUpdate()

@@ -19,18 +19,21 @@ public sealed partial class MainWindow : Window
     private readonly TextBox _search = new() { PlaceholderText = "Search apps, tools, possibilities…    Ctrl K", Width = 330 };
     private readonly Button _clearSearch;
     private readonly Dictionary<string, Button> _nav = [];
-    private readonly TextBlock _updateCount = Ui.Text("", 10, "#25311C", FontWeight.SemiBold);
+    private TextBlock _updateCount = Ui.Text("", 10, p => p.AccentOn, FontWeight.SemiBold);
     private Border? _updateBadge;
-    private readonly Ellipse _footerDot = new() { Width = 7, Height = 7, Fill = Ui.Muted, VerticalAlignment = VerticalAlignment.Center };
-    private readonly TextBlock _footerState = Ui.MutedText("Updates not checked yet", 10);
+    private Ellipse _footerDot = new();
+    private TextBlock _footerState = Ui.MutedText("Updates not checked yet", 10);
     private readonly Grid _header;
     private readonly Border _status;
+    private readonly ContentControl _sidebar = new();
+    private Border _headerBar = new();
+    private string _sidebarTheme = "";
     private readonly DispatcherTimer _timer = new() { Interval = TimeSpan.FromSeconds(1) };
     private string _page = "Discover", _category = "All apps", _query = "", _collection = "Everyday essentials";
     private bool _checking, _dirty, _list, _initializing, _hideInstalled;
     private DateTimeOffset _lastScheduledCheck = DateTimeOffset.MinValue;
     private DateTimeOffset _lastInventoryCheck = DateTimeOffset.MinValue;
-    private bool _refreshingInventory;
+    private bool _refreshingInventory, _noticeProblem;
     // Content gutters widen once the window fills the screen, so a maximized layout breathes.
     private double Gutter => WindowState == WindowState.Maximized ? 44 : 32;
     public MainWindow(PackageManager manager, bool startServices = true, ISelfUpdateLauncher? selfUpdateLauncher = null)
@@ -41,7 +44,8 @@ public sealed partial class MainWindow : Window
         WindowStartupLocation = WindowStartupLocation.CenterScreen;
         Chrome.Extend(this);
         var root = new Grid { ColumnDefinitions = new ColumnDefinitions("228,*") };
-        root.Children.Add(BuildSidebar());
+        _sidebar = new ContentControl { Content = BuildSidebar() }; _sidebarTheme = Themes.Current.Id;
+        root.Children.Add(_sidebar);
         var main = new Grid { RowDefinitions = new RowDefinitions($"{Chrome.Height},70,*,38") }; Grid.SetColumn(main, 1); root.Children.Add(main);
         main.Children.Add(Chrome.TitleBar(this, null, resizable: true));
         _clearSearch = Ui.Button("", () => { _search.Text = ""; _search.Focus(); }, "clear");
@@ -51,7 +55,8 @@ public sealed partial class MainWindow : Window
         ToolTip.SetTip(_clearSearch, "Clear search"); Avalonia.Automation.AutomationProperties.SetName(_clearSearch, "Clear search");
         _search.InnerRightContent = _clearSearch;
         _header = Ui.Between(_breadcrumb, _search); _header.Name = "HeaderBar"; _header.Margin = new Thickness(Gutter, 16);
-        var headerBar = new Border { Child = _header, BorderBrush = Ui.Line, BorderThickness = new Thickness(0, 0, 0, 1) };
+        _headerBar = new Border { Child = _header, BorderBrush = Ui.Line, BorderThickness = new Thickness(0, 0, 0, 1) };
+        var headerBar = _headerBar;
         Grid.SetRow(headerBar, 1); main.Children.Add(headerBar);
         var scroll = new ScrollViewer { Content = _body, HorizontalScrollBarVisibility = Avalonia.Controls.Primitives.ScrollBarVisibility.Disabled };
         Grid.SetRow(scroll, 2); main.Children.Add(scroll);
@@ -70,6 +75,7 @@ public sealed partial class MainWindow : Window
         KeyDown += (_, e) => { if (e.Key == Key.K && (e.KeyModifiers.HasFlag(KeyModifiers.Control) || e.KeyModifiers.HasFlag(KeyModifiers.Meta))) { _search.Focus(); e.Handled = true; } };
         _search.KeyDown += (_, e) => { if (e.Key == Key.Escape && !string.IsNullOrEmpty(_search.Text)) { _search.Text = ""; e.Handled = true; } };
         _manager.Changed += OnChanged;
+        Themes.Changed += OnChanged;
         _timer.Tick += async (_, _) =>
         {
             if (_dirty) { _dirty = false; Render(); }
@@ -77,7 +83,7 @@ public sealed partial class MainWindow : Window
             if (!_checking && DateTimeOffset.UtcNow - _lastScheduledCheck > TimeSpan.FromHours(_manager.Settings.CheckIntervalHours)) await CheckReleases(false);
         };
         Closing += (_, e) => { if (_manager.HasActiveOperations) { e.Cancel = true; Notice("A package operation is active. Pause downloads or finish the installer before closing Airlift."); } };
-        Closed += (_, _) => { _timer.Stop(); _manager.Changed -= OnChanged; };
+        Closed += (_, _) => { _timer.Stop(); _manager.Changed -= OnChanged; Themes.Changed -= OnChanged; };
         SizeChanged += (_, e) => { if (Math.Abs(e.NewSize.Width - e.PreviousSize.Width) > 1) Render(); };
         if (startServices) Activated += async (_, _) => await RefreshInventoryView();
         if (startServices) Opened += async (_, _) =>
@@ -98,7 +104,12 @@ public sealed partial class MainWindow : Window
         catch (Exception error) { Notice("Could not refresh installed versions: " + error.Message); }
         finally { _refreshingInventory = false; }
     }
-    private void Notice(string message) => Dispatcher.UIThread.Post(() => _notice.Text = message);
+    // A problem stays legible in the status bar until the next message replaces it.
+    private void Notice(string message, bool problem = false) => Dispatcher.UIThread.Post(() =>
+    {
+        _notice.Text = message; _noticeProblem = problem;
+        _notice.Foreground = Themes.Brush(problem ? p => p.DangerText : p => p.Muted);
+    });
     public void Navigate(string page)
     {
         _page = page; _query = ""; _category = "All apps"; _search.Text = ""; Render();
@@ -111,12 +122,26 @@ public sealed partial class MainWindow : Window
             await Task.Run(_manager.RefreshInventory); await _manager.CheckReleasesAsync(force);
             await CheckSelfUpdate(force);
             var updates = _manager.Apps.Count(_manager.HasUpdate) + (_manager.SelfUpdate.HasUpdate ? 1 : 0);
-            var failed = _manager.Apps.Count(a => _manager.Release(a)?.Error != null) + (_manager.SelfUpdate.Cached?.Error != null ? 1 : 0);
-            Notice($"Release check complete. {updates} update{(updates == 1 ? "" : "s")} available." + (failed > 0 ? $" {failed} repositories could not be checked; see Sources." : ""));
+            var problems = _manager.Apps.Select(a => _manager.Release(a)?.Error)
+                .Append(_manager.SelfUpdate.Cached?.Error).Where(e => !string.IsNullOrEmpty(e)).Select(e => e!).ToList();
+            var summary = $"Release check complete. {updates} update{(updates == 1 ? "" : "s")} available.";
+            if (problems.Count == 0) Notice(summary);
+            else
+            {
+                var reason = problems.GroupBy(e => e).OrderByDescending(g => g.Count()).First().Key;
+                Notice($"{summary} {problems.Count} of {_manager.Apps.Count + 1} repositories could not be checked. {reason}", problem: true);
+                if (force) await Problem("Some releases could not be checked", ReasonAdvice(reason), reason);
+            }
         }
-        catch (Exception e) { Notice(e.Message); }
+        catch (Exception e) { Notice(e.Message, problem: true); if (force) await Problem("The release check failed", ReasonAdvice(e.Message), e.Message); }
         finally { _checking = false; Render(); }
     }
+    // GitHub allows 60 unauthenticated requests an hour per address, and Airlift spends one per
+    // repository, so this is the limit users meet in practice. Say what to do, not just what broke.
+    private static string ReasonAdvice(string reason) =>
+        reason.Contains("rate limit", StringComparison.OrdinalIgnoreCase) || reason.Contains("paused", StringComparison.OrdinalIgnoreCase)
+            ? "GitHub limits how often an app may ask about releases without signing in, and Airlift asks once per repository. Wait for the time below, then check again. Everything Airlift already knew is still shown, but it may be out of date."
+            : "Airlift kept whatever it already knew about these repositories. Their versions may be out of date until a check succeeds.";
     private Control BuildSidebar()
     {
         var grid = new Grid { RowDefinitions = new RowDefinitions("Auto,*,Auto"), Margin = new Thickness(0, 0, 0, 15) };
@@ -137,6 +162,7 @@ public sealed partial class MainWindow : Window
             var button = Brand.Navigation(name, () => Navigate(name)); _nav[name] = button; navigation.Children.Add(button);
             if (name == "Updates")
             {
+                _updateCount = Ui.Text("", 10, p => p.AccentOn, FontWeight.SemiBold);
                 _updateBadge = new Border { Name = "UpdateBadge", Child = _updateCount, Background = Ui.Lime, CornerRadius = new CornerRadius(4), Padding = new Thickness(6, 2), IsVisible = false };
                 ((StackPanel)button.Content!).Children.Add(_updateBadge);
             }
@@ -150,12 +176,14 @@ public sealed partial class MainWindow : Window
         var settings = Brand.Navigation("Settings", () => Navigate("Settings")); _nav["Settings"] = settings;
         var bottom = Ui.Stack(12, Ui.Separator(), settings, VersionCard());
         bottom.Margin = new Thickness(16, 0, 16, 0); bottom.Name = "SidebarFooter"; Grid.SetRow(bottom, 2); grid.Children.Add(bottom);
-        return new Border { Child = grid, Background = Brush.Parse("#151715"), BorderBrush = Ui.Line, BorderThickness = new Thickness(0, 0, 1, 0) };
+        return new Border { Child = grid, Background = Themes.Brush(p => p.Sidebar), BorderBrush = Ui.Line, BorderThickness = new Thickness(0, 0, 1, 0) };
     }
     // The footer used to be a decorative profile chip. It now reports the running version and
     // whether a newer Airlift release is waiting, and opens Updates when one is.
     private Control VersionCard()
     {
+        _footerDot = new Ellipse { Width = 7, Height = 7, Fill = Ui.Muted, VerticalAlignment = VerticalAlignment.Center };
+        _footerState = Ui.MutedText("Updates not checked yet", 10);
         var card = Ui.Button("", () => Navigate("Updates"), "version");
         card.HorizontalAlignment = HorizontalAlignment.Stretch; card.HorizontalContentAlignment = HorizontalAlignment.Stretch;
         card.Content = Ui.Stack(8,
@@ -167,17 +195,21 @@ public sealed partial class MainWindow : Window
     private void RenderVersionCard()
     {
         var cache = _manager.SelfUpdate.Cached;
-        var (text, colour) = _checkingSelf ? ("Checking for updates…", "#92988D")
-            : _manager.SelfUpdate.HasUpdate ? ($"Version {cache!.Release!.Version} available", "#D7F59A")
-            : (_selfCheckError ?? cache?.Error) != null ? ("Update check unavailable", "#92988D")
-            : cache?.Release != null ? ("Up to date", "#92988D")
-            : ("Updates not checked yet", "#92988D");
-        _footerState.Text = text; _footerState.Foreground = Brush.Parse(colour);
-        _footerDot.Fill = Brush.Parse(_manager.SelfUpdate.HasUpdate ? "#D7F59A" : "#4E5A44");
+        var (text, colour) = _checkingSelf ? ("Checking for updates…", (Func<Palette, string>)(p => p.Muted))
+            : _manager.SelfUpdate.HasUpdate ? ($"Version {cache!.Release!.Version} available", p => p.Accent)
+            : (_selfCheckError ?? cache?.Error) != null ? ("Update check unavailable", p => p.Muted)
+            : cache?.Release != null ? ("Up to date", p => p.Muted)
+            : ("Updates not checked yet", p => p.Muted);
+        _footerState.Text = text; _footerState.Foreground = Themes.Brush(colour);
+        _footerDot.Fill = Themes.Brush(_manager.SelfUpdate.HasUpdate ? p => p.Accent : p => p.AccentIdle);
     }
     private void Render()
     {
         _header.Margin = new Thickness(Gutter, 16); _status.Padding = new Thickness(Gutter, 10);
+        // Colour built in code is resolved once, so a palette change rebuilds what Render does not.
+        if (_sidebarTheme != Themes.Current.Id) { _sidebarTheme = Themes.Current.Id; _sidebar.Content = BuildSidebar(); }
+        _headerBar.BorderBrush = Ui.Line; _status.BorderBrush = Ui.Line;
+        _notice.Foreground = Themes.Brush(_noticeProblem ? p => p.DangerText : p => p.Muted);
         _clearSearch.IsVisible = !string.IsNullOrEmpty(_search.Text);
         RenderVersionCard();
         foreach (var (name, button) in _nav) button.Classes.Set("active", name == _page);
@@ -213,21 +245,21 @@ public sealed partial class MainWindow : Window
     private Control Hero()
     {
         var grid = new Grid { ColumnDefinitions = new ColumnDefinitions("*,*"), MinHeight = 290, ClipToBounds = true };
-        var copy = Ui.Stack(13, Ui.Text("✦  THE FEZCODE COLLECTION", 10, "#B8D68F"), Ui.Text("Small apps.\nA big lift.", 44, "#EDF4DF", FontWeight.SemiBold),
+        var copy = Ui.Stack(13, Ui.Text("✦  THE FEZCODE COLLECTION", 10, p => p.AccentMuted), Ui.Text("Small apps.\nA big lift.", 44, p => p.TextHero, FontWeight.SemiBold),
             Ui.MutedText("Less friction. More doing. Meet independent tools\nthat make the everyday a little extraordinary.", 12),
             Ui.Button("Find your essentials     →", () => Navigate("Collections"), "primary"), Ui.MutedText("—   Thoughtfully made. Yours to explore.", 9)); copy.HorizontalAlignment = HorizontalAlignment.Left; copy.Margin = new Thickness(30, 26);
         grid.Children.Add(copy);
         var art = new Canvas { ClipToBounds = true, MinWidth = 290 }; Grid.SetColumn(art, 1); grid.Children.Add(art);
         foreach (var diameter in new[] { 240d, 340d, 440d })
         {
-            var orbit = new Ellipse { Width = diameter, Height = diameter, Stroke = Brush.Parse("#354529"), StrokeThickness = 1 }; Canvas.SetLeft(orbit, 215 - diameter / 2); Canvas.SetTop(orbit, 165 - diameter / 2); art.Children.Add(orbit);
+            var orbit = new Ellipse { Width = diameter, Height = diameter, Stroke = Themes.Brush(p => p.HeroOrbit), StrokeThickness = 1 }; Canvas.SetLeft(orbit, 215 - diameter / 2); Canvas.SetTop(orbit, 165 - diameter / 2); art.Children.Add(orbit);
         }
         var mark = Brand.Mark(120); mark.RenderTransform = new RotateTransform(-9); Canvas.SetLeft(mark, 155); Canvas.SetTop(mark, 102); art.Children.Add(mark);
         foreach (var (app, x, y) in new[] { (_manager.Apps[0], 92d, 40d), (_manager.Apps[2], 318d, 72d), (_manager.Apps[4], 96d, 230d) })
         { var icon = Ui.Icon(app, 57); Canvas.SetLeft(icon, x); Canvas.SetTop(icon, y); art.Children.Add(icon); }
-        var star = Ui.Text("✦", 27, "#BAD491"); Canvas.SetLeft(star, 344); Canvas.SetTop(star, 242); art.Children.Add(star);
+        var star = Ui.Text("✦", 27, p => p.AccentStar); Canvas.SetLeft(star, 344); Canvas.SetTop(star, 242); art.Children.Add(star);
         var hero = Ui.Card(grid, 0);
-        hero.Background = new LinearGradientBrush { StartPoint = new RelativePoint(0, 0, RelativeUnit.Relative), EndPoint = new RelativePoint(1, 1, RelativeUnit.Relative), GradientStops = [new GradientStop(Color.Parse("#252F1E"), 0), new GradientStop(Color.Parse("#1B2418"), 1)] };
+        hero.Background = new LinearGradientBrush { StartPoint = new RelativePoint(0, 0, RelativeUnit.Relative), EndPoint = new RelativePoint(1, 1, RelativeUnit.Relative), GradientStops = [new GradientStop(Color.Parse(Themes.Hex(p => p.HeroFrom)), 0), new GradientStop(Color.Parse(Themes.Hex(p => p.HeroTo)), 1)] };
         return hero;
     }
     private void BuildCatalog(StackPanel content)
@@ -235,7 +267,7 @@ public sealed partial class MainWindow : Window
         var updateCount = _manager.Apps.Count(_manager.HasUpdate);
         if (_page == "Updates" || _manager.SelfUpdate.HasUpdate) content.Children.Add(SelfUpdateCard());
         if (_page is "Discover" or "My library" && updateCount > 0)
-            content.Children.Add(Ui.Card(Ui.Between(Ui.Stack(6, Ui.Text($"{updateCount} app update{(updateCount == 1 ? "" : "s")} available", 16, "#D7F59A", FontWeight.SemiBold), Ui.MutedText("New releases are ready for your installed apps. Review what’s changed.", 11)), Ui.Button("Review updates →", () => Navigate("Updates"), "primary")), 18, "#232E1C"));
+            content.Children.Add(Ui.Card(Ui.Between(Ui.Stack(6, Ui.Text($"{updateCount} app update{(updateCount == 1 ? "" : "s")} available", 16, p => p.Accent, FontWeight.SemiBold), Ui.MutedText("New releases are ready for your installed apps. Review what’s changed.", 11)), Ui.Button("Review updates →", () => Navigate("Updates"), "primary")), 18, p => p.CardAccent));
         if (_page == "Discover" && string.IsNullOrWhiteSpace(_query))
         {
             content.Children.Add(Hero()); content.Children.Add(Ui.Between(Ui.MutedText($"◇  {_manager.Apps.Count} independent apps     ·     Your setup, your control     ·     Made by Fezcode", 11), Ui.Button("Meet your source  ↗", () => Navigate("Sources"), "link")));

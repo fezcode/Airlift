@@ -34,13 +34,13 @@ public sealed partial class MainWindow
         var choices = new Grid { ColumnDefinitions = new ColumnDefinitions("*,*,*"), ColumnSpacing = 14 };
         var index = 0;
         foreach (var (collection, description, color) in new[] {
-            ("Everyday essentials", "A little less friction. A lot more flow.", "#28331F"),
-            ("The creative desk", "Space for your next good idea.", "#2D272F"),
-            ("After hours", "Good tools for your downtime.", "#253036") })
+            ("Everyday essentials", "A little less friction. A lot more flow.", (Func<Palette, string>)(p => p.CollectionOne)),
+            ("The creative desk", "Space for your next good idea.", p => p.CollectionTwo),
+            ("After hours", "Good tools for your downtime.", p => p.CollectionThree) })
         {
             var number = ++index;
             var button = Ui.Button("", () => { _collection = collection; Render(); }, "identity"); button.HorizontalAlignment = HorizontalAlignment.Stretch; button.HorizontalContentAlignment = HorizontalAlignment.Stretch;
-            var card = Ui.Card(Ui.Stack(15, Ui.MutedText($"COLLECTION  /  0{number}", 9), Ui.Text(collection, 21, weight: FontWeight.SemiBold), Ui.MutedText(description, 11), Ui.Text(_collection == collection ? "Exploring this collection  ↓" : "Explore collection  →", 11, "#D7F59A")), 22, color);
+            var card = Ui.Card(Ui.Stack(15, Ui.MutedText($"COLLECTION  /  0{number}", 9), Ui.Text(collection, 21, weight: FontWeight.SemiBold), Ui.MutedText(description, 11), Ui.Text(_collection == collection ? "Exploring this collection  ↓" : "Explore collection  →", 11, p => p.Accent)), 22, color);
             if (_collection == collection) card.BorderBrush = Ui.Lime;
             button.Content = card; choices.Children.Add(button); Grid.SetColumn(button, number - 1);
         }
@@ -80,6 +80,7 @@ public sealed partial class MainWindow
         startup.IsCheckedChanged += (_, _) => _manager.SetSettings(_manager.Settings with { CheckOnStartup = startup.IsChecked == true });
         var interval = new ComboBox { ItemsSource = new[] { 6, 12, 24 }, SelectedItem = _manager.Settings.CheckIntervalHours, Width = 100 };
         interval.SelectionChanged += (_, _) => { if (interval.SelectedItem is int hours) _manager.SetSettings(_manager.Settings with { CheckIntervalHours = hours }); };
+        content.Children.Add(Appearance());
         content.Children.Add(Ui.Card(Ui.Stack(20, Ui.Text("Release tracking", 19), startup, Ui.Between(Ui.Stack(5, Ui.Text("Background check interval", 13), Ui.MutedText("Hours between checks while Airlift is open. Updates always wait for your review.", 11)), interval))));
         var inventory = Ui.Between(Ui.Stack(5, Ui.Text("Installed apps", 13), Ui.MutedText("Reconcile Airlift with installed Forge apps on this computer.", 11)), Ui.AsyncButton("Refresh inventory", async () => { try { await Task.Run(_manager.RefreshInventory); Notice("Installed apps refreshed."); Render(); } catch (Exception e) { Notice(e.Message); } }));
         var storage = Ui.Between(Ui.Stack(5, Ui.Text("Local storage", 13), Ui.MutedText(_manager.Store.Root, 10)), Ui.AsyncButton("Open folder", async () => await Launcher.LaunchDirectoryInfoAsync(new DirectoryInfo(_manager.Store.Root))));
@@ -94,6 +95,56 @@ public sealed partial class MainWindow
             Ui.MutedText("Airlift is free and open source. A star on GitHub costs you one click and helps other people find it.", 12),
             Ui.Row(9, Ui.AsyncButton("★  Star on GitHub", () => OpenUrl(SelfUpdater.RepositoryUrl), "primary"),
                 Ui.AsyncButton("Report an issue  ↗", () => OpenUrl(SelfUpdater.RepositoryUrl + "/issues"), "link")))));
+    }
+    /// <summary>One tile per theme. New palettes appear here without touching this method.</summary>
+    private Control Appearance()
+    {
+        var tiles = new WrapPanel { Orientation = Orientation.Horizontal };
+        foreach (var palette in Themes.All)
+        {
+            var chosen = Themes.Current.Id == palette.Id;
+            var swatches = Ui.Row(6);
+            foreach (var hex in new[] { palette.Accent, palette.Card, palette.Raised, palette.Line })
+                swatches.Children.Add(new Border { Width = 22, Height = 22, CornerRadius = new CornerRadius(6), Background = Brush.Parse(hex), BorderBrush = Brush.Parse(palette.Line), BorderThickness = new Thickness(1) });
+            var tile = Ui.Button("", () => SelectTheme(palette), "identity");
+            tile.Name = "ThemeTile." + palette.Id;
+            tile.HorizontalContentAlignment = HorizontalAlignment.Stretch;
+            tile.Margin = new Thickness(0, 0, 12, 0);
+            Avalonia.Automation.AutomationProperties.SetName(tile, palette.Name);
+            var body = Ui.Card(Ui.Stack(12, swatches,
+                Ui.Stack(4, Ui.Text(palette.Name, 15, weight: FontWeight.SemiBold), Ui.MutedText(palette.Summary, 11)),
+                Ui.Text(chosen ? "In use" : "Use this theme", 11, chosen ? p => p.Accent : p => p.Muted)), 16, _ => palette.Window);
+            body.Name = "ThemeTile." + palette.Id;
+            body.Width = 210;
+            if (chosen) body.BorderBrush = Ui.Lime;
+            tile.Content = body; tiles.Children.Add(tile);
+        }
+        return Ui.Card(Ui.Stack(16, Ui.Text("Appearance", 19),
+            Ui.MutedText("Airlift keeps your choice between sessions. Each app's own colour stays its own.", 12), tiles));
+    }
+    private void SelectTheme(Palette palette)
+    {
+        if (Themes.Current.Id == palette.Id) return;
+        _manager.SetSettings(_manager.Settings with { Theme = palette.Id });
+        Themes.Apply(palette.Id, Application.Current);
+        Render();
+    }
+    /// <summary>A problem the person asked for and should see, rather than a line they may miss.</summary>
+    private async Task Problem(string title, string advice, string? detail = null)
+    {
+        var window = Dialog(title, 480);
+        var body = Ui.Stack(18, Ui.Text(title, 21, weight: FontWeight.SemiBold), Ui.MutedText(advice, 12));
+        if (!string.IsNullOrWhiteSpace(detail))
+        {
+            var reported = Ui.Card(Ui.MutedText(detail, 11), 14, p => p.Code);
+            reported.Name = "ProblemDetail"; body.Children.Add(reported);
+        }
+        var buttons = Ui.Row(9,
+            Ui.Button("See sources", () => { window.Close(); Navigate("Sources"); }, "link"),
+            Ui.Button("Close", window.Close, "primary"));
+        buttons.HorizontalAlignment = HorizontalAlignment.Right; body.Children.Add(buttons);
+        Frame(window, new Border { Child = body, Padding = new Thickness(28, 10, 28, 28) });
+        await window.ShowDialog(this);
     }
     private async Task ClearOldInstallers()
     {

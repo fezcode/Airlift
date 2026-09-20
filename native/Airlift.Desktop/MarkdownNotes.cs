@@ -34,13 +34,13 @@ public sealed class MarkdownNotes : StackPanel
                     var title = Paragraph(heading.Inline); title.FontSize = heading.Level switch { 1 => 23, 2 => 19, _ => 15 };
                     // A heading keeping the body's line box would have its ascenders and descenders cut off.
                     title.LineHeight = Math.Round(title.FontSize * 1.35);
-                    title.FontWeight = FontWeight.SemiBold; title.Foreground = Brush.Parse("#E8EAE5");
+                    title.FontWeight = FontWeight.SemiBold; title.Foreground = Themes.Brush(p => p.TextBright);
                     target.Children.Add(title); break;
                 case ParagraphBlock paragraph: target.Children.Add(Paragraph(paragraph.Inline)); break;
                 case CodeBlock code:
-                    var codeText = new SelectableTextBlock { Text = code.Lines.ToString(), FontFamily = FontFamily.Parse("Cascadia Mono, Menlo, DejaVu Sans Mono, monospace"), FontSize = 11, Foreground = Brush.Parse("#D7E3C9") };
+                    var codeText = new SelectableTextBlock { Text = code.Lines.ToString(), FontFamily = FontFamily.Parse("Cascadia Mono, Menlo, DejaVu Sans Mono, monospace"), FontSize = 11, Foreground = Themes.Brush(p => p.TextCode) };
                     var scroller = new ScrollViewer { Content = codeText, HorizontalScrollBarVisibility = Avalonia.Controls.Primitives.ScrollBarVisibility.Auto };
-                    target.Children.Add(Ui.Card(scroller, 13, "#121710")); break;
+                    target.Children.Add(Ui.Card(scroller, 13, p => p.Code)); break;
                 case ListBlock list:
                     var items = Ui.Stack(7); var index = int.TryParse(list.OrderedStart, out var start) ? start : 1;
                     foreach (var item in list.OfType<ListItemBlock>())
@@ -65,7 +65,7 @@ public sealed class MarkdownNotes : StackPanel
                         {
                             var cellContent = Ui.Stack(5); AddBlocks(cellContent, cell);
                             if (row.IsHeader) foreach (var text in cellContent.Children.OfType<TextBlock>()) text.FontWeight = FontWeight.SemiBold;
-                            var border = new Border { Child = cellContent, Padding = new Thickness(10), BorderThickness = new Thickness(0, 0, 0, 1), BorderBrush = Ui.Line, Background = row.IsHeader ? Brush.Parse("#252D20") : Brushes.Transparent };
+                            var border = new Border { Child = cellContent, Padding = new Thickness(10), BorderThickness = new Thickness(0, 0, 0, 1), BorderBrush = Ui.Line, Background = row.IsHeader ? Themes.Brush(p => p.Raised) : Brushes.Transparent };
                             grid.Children.Add(border); Grid.SetColumn(border, column++); Grid.SetRow(border, rowIndex);
                         }
                         rowIndex++;
@@ -78,7 +78,7 @@ public sealed class MarkdownNotes : StackPanel
     }
     private SelectableTextBlock Paragraph(ContainerInline? inline)
     {
-        var text = new SelectableTextBlock { FontSize = 12, Foreground = Brush.Parse("#A9B39E"), TextWrapping = TextWrapping.Wrap, LineHeight = 20 };
+        var text = new SelectableTextBlock { FontSize = 12, Foreground = Themes.Brush(p => p.Prose), TextWrapping = TextWrapping.Wrap, LineHeight = 20 };
         if (inline != null) AddInlines(text.Inlines!, inline);
         return text;
     }
@@ -91,7 +91,7 @@ public sealed class MarkdownNotes : StackPanel
                 case LiteralInline literal: target.Add(new Run(literal.Content.ToString())); break;
                 case LineBreakInline line: target.Add(line.IsHard ? new LineBreak() : new Run(" ")); break;
                 case CodeInline code:
-                    target.Add(new Run(code.Content) { FontFamily = FontFamily.Parse("Cascadia Mono, Menlo, DejaVu Sans Mono, monospace"), Background = Brush.Parse("#293121"), Foreground = Ui.Lime }); break;
+                    target.Add(new Run(code.Content) { FontFamily = FontFamily.Parse("Cascadia Mono, Menlo, DejaVu Sans Mono, monospace"), Background = Themes.Brush(p => p.CodeInline), Foreground = Ui.Lime }); break;
                 case EmphasisInline emphasis:
                     var span = new Span();
                     if (emphasis.DelimiterChar == '~') span.TextDecorations = TextDecorations.Strikethrough;

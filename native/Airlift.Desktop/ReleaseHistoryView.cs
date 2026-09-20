@@ -74,7 +74,7 @@ public sealed class ReleaseHistoryView : StackPanel
         var detail = Ui.Stack(15);
         var notes = string.IsNullOrWhiteSpace(release.Notes) ? "No release notes were published." : release.Notes;
         detail.Children.Add(new MarkdownNotes(notes, release.Url, _openUrl));
-        detail.Children.Add(Ui.Text($"ASSETS  ·  {release.Assets.Count}", 10, "#B6C5A5", FontWeight.SemiBold));
+        detail.Children.Add(Ui.Text($"ASSETS  ·  {release.Assets.Count}", 10, p => p.AccentSoft, FontWeight.SemiBold));
         if (release.Assets.Count == 0) detail.Children.Add(Ui.MutedText("No downloadable assets were attached.", 11));
         foreach (var asset in release.Assets)
         {

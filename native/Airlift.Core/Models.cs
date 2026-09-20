@@ -15,7 +15,7 @@ public sealed record ReleaseCache(AppRelease? Release, string? ETag, DateTimeOff
 public sealed record ReleaseHistoryPage(List<AppRelease> Releases, bool HasMore, string? ETag, DateTimeOffset CheckedAt, string? Error);
 public sealed record InstalledApp(string AppId, string Version, string Directory, string Provider, string? Executable = null, bool Machine = false);
 public sealed record AppPreferences(bool Pinned = false, bool IncludePrerelease = false);
-public sealed record AppSettings(bool CheckOnStartup = true, int CheckIntervalHours = 6);
+public sealed record AppSettings(bool CheckOnStartup = true, int CheckIntervalHours = 6, string Theme = "meadow");
 public sealed record PackagePlan(CatalogApp App, AppRelease Release, ReleaseAsset Asset, string Os, string Arch, string Format);
 public sealed record Operation(string Id, string AppId, string AppName, string Action, string Version, string Status,
     double Progress, string Message, DateTimeOffset Started, string? File = null)
