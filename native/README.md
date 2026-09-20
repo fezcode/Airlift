@@ -1,4 +1,4 @@
-# Native Airlift 0.2.2
+# Native Airlift 0.2.3
 
 The desktop app and CLI use the same `Airlift.Core` library: catalog/version resolution, SQLite persistence, GitHub caching, downloads, package validation and OS providers. `Airlift.Desktop` contains Avalonia 12 views; `Airlift.Tests` covers core behavior and headless rendering. Available versions always come from published GitHub releases, not local Forge manifests.
 
@@ -24,7 +24,7 @@ Windows outputs:
 
 - `dist/win-x64/desktop/Airlift.exe`
 - `dist/win-x64/cli/airlift-cli.exe`
-- `dist/Airlift-Setup-0.2.2.exe`
+- `dist/installer/Airlift-Setup-0.2.3.exe`
 
 The release version lives in `native/Directory.Build.props`; `Airlift.Core.AppVersion` reads the resulting assembly stamp, so the CLI banner, both `--version` outputs, the GitHub User-Agent and the desktop About card never hardcode it. `version.ps1` bumps that value and the three inputs that cannot read an assembly: `forge.toml` and the installer references in both READMEs. It exits non-zero if they disagree.
 
@@ -49,7 +49,7 @@ Use `--help` for all commands. `--data-dir <path>` isolates state. `--allow-unve
 
 - At startup, Airlift reconciles installed versions and revalidates GitHub releases (when enabled). Newer versions appear as Update actions on cards, a sidebar count and a review banner on Discover/My library. Results appear during the check; missing/failed release data is reported separately from being up to date. Pinned apps remain excluded.
 - Publish outputs are self-contained folders (`PublishSingleFile=false`), not bundled EXEs. Keep their libraries and runtime files together. Forge copies the desktop folder into `${INSTALLDIR}` and the CLI folder into `${INSTALLDIR}/cli`; the installed CLI is `cli/airlift-cli.exe`.
-- Native publish outputs live in `dist/<runtime>/desktop` and `dist/<runtime>/cli`; Forge installers live directly in `dist`. Tests and screenshots remain under `artifacts`. The browser design reference builds into `artifacts/web-preview` so it cannot erase native outputs.
+- Native publish outputs live in `dist/<runtime>/desktop` and `dist/<runtime>/cli`; Forge installers live in `dist/installer`. Tests and screenshots remain under `artifacts`. The browser design reference builds into `artifacts/web-preview` so it cannot erase native outputs.
 - Refresh app icons with `npm run icons:sync` from the repository root. This reads the current icon path in each catalogued sibling app's `forge.toml`, updates browser icons, and losslessly extracts the largest PNG frame for native resources. It does not change catalog versions or metadata.
 - Release notes use Markdig and native Avalonia text controls for headings, emphasis, nested lists, quotes, code blocks, tables and HTTPS links. Overview uses the same renderer as release history. HTML is displayed as text, and images are offered as links. Notes do not execute HTML or load remote images automatically.
 - Pin and prerelease checkboxes persist immediately while keeping app details open. Changing channels refreshes that app's metadata and actions in place; a stale response from an earlier toggle cannot overwrite the current channel. Checkmarks use a dark glyph on the lime accent across pointer and keyboard states.

@@ -65,7 +65,7 @@ steps in order and stop/report any failure before proceeding:
    it; report that effect and respect authorization already given.
 3. Run `./build-installer.ps1 -SkipBuild` immediately afterward. Forge requires
    the sibling `../Forge/build/forge.exe`, produced by `gobake build` in Forge.
-   Verify `dist/Airlift-Setup-<version>.exe` exists, matches the
+   Verify `dist/installer/Airlift-Setup-<version>.exe` exists, matches the
    new version, and surface that exact path for testing. During RELEASE, launch
    this new Setup executable for the user to install/test; an existing installed
    copy stays old until Setup is run. Keep the wizard's "Open Airlift" finish
@@ -80,7 +80,7 @@ steps in order and stop/report any failure before proceeding:
    or force-push.
 6. Create the matching `vX.Y.Z` tag on the verified commit, push it, and create a
    GitHub release with `gh release create vX.Y.Z`, attaching only the matching
-   `dist/Airlift-Setup-X.Y.Z.exe` installer asset. Use title
+   `dist/installer/Airlift-Setup-X.Y.Z.exe` installer asset. Use title
    `Airlift vX.Y.Z`; notes start with `## Airlift vX.Y.Z`, followed by
    `### ✨ <feature>` sections and bullets. Supply notes through `--notes-file`
    to avoid PowerShell multiline argument splitting. Verify the published asset.
@@ -88,7 +88,7 @@ steps in order and stop/report any failure before proceeding:
 ## Build and installer maintenance
 
 - All distributable builds live under `dist/<runtime>/desktop` and
-  `dist/<runtime>/cli`; Windows installers live directly in `dist` as
+  `dist/<runtime>/cli`; Windows installers live in `dist/installer` as
   `Airlift-Setup-<version>.exe`, matching the other Fezcode apps. Keep Forge,
   build scripts, CI upload paths and both READMEs consistent with this layout.
 - `artifacts` is for test fixtures, screenshots and the browser design preview.

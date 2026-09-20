@@ -19,8 +19,8 @@ foreach ($component in @('desktop', 'cli')) {
     }
 }
 # A fresh staging directory prevents an old installer from being reported after a failed build.
-$dist = Join-Path $PSScriptRoot 'dist'
-$stage = Join-Path $dist ('.installer-' + [Guid]::NewGuid().ToString('N'))
+$installerRoot = Join-Path $PSScriptRoot 'dist/installer'
+$stage = Join-Path $installerRoot ('.installer-' + [Guid]::NewGuid().ToString('N'))
 New-Item -ItemType Directory -Path $stage -Force | Out-Null
 $process = Start-Process -FilePath $forgeExecutable -ArgumentList @('build', '--out', ('"{0}"' -f $stage)) -WorkingDirectory $PSScriptRoot -WindowStyle Hidden -PassThru -Wait
 if ($process.ExitCode -ne 0) { throw "Forge build failed with exit code $($process.ExitCode)" }
@@ -38,9 +38,9 @@ try {
     $stream.Position = $pe + 24 + 68
     if ($reader.ReadUInt16() -ne 2) { throw 'Setup must be a GUI executable, not a console stub.' }
 } finally { $reader.Dispose(); $stream.Dispose() }
-$destination = [IO.Path]::GetFullPath((Join-Path $dist $filename))
-$boundary = [IO.Path]::GetFullPath($dist) + [IO.Path]::DirectorySeparatorChar
-if (-not $destination.StartsWith($boundary, [StringComparison]::OrdinalIgnoreCase) -or -not ([IO.Path]::GetFullPath($setup)).StartsWith($boundary, [StringComparison]::OrdinalIgnoreCase)) { throw 'Installer paths must stay within dist.' }
+$destination = [IO.Path]::GetFullPath((Join-Path $installerRoot $filename))
+$boundary = [IO.Path]::GetFullPath($installerRoot) + [IO.Path]::DirectorySeparatorChar
+if (-not $destination.StartsWith($boundary, [StringComparison]::OrdinalIgnoreCase) -or -not ([IO.Path]::GetFullPath($setup)).StartsWith($boundary, [StringComparison]::OrdinalIgnoreCase)) { throw 'Installer paths must stay within dist/installer.' }
 Move-Item -LiteralPath $setup -Destination $destination -Force
 # Remove only this empty staging directory, preserving every other build and installer.
 if (@(Get-ChildItem -LiteralPath $stage -Force).Count -eq 0) { Remove-Item -LiteralPath $stage }

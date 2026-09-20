@@ -1,6 +1,6 @@
 [app]
 name = "Airlift"
-version = "0.2.2"
+version = "0.2.3"
 id = "com.fezcode.airlift"
 icon = "native/Airlift.Desktop/Assets/airlift.ico"
 
