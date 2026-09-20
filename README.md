@@ -58,4 +58,8 @@ The checked-in catalog and icons make the preview portable; Workhammer is needed
 
 Read [the product and technical design](docs/architecture.md) for the desktop plan, release contract, and proposed Forge additions.
 
+## License
+
+Airlift is released under the [MIT License](LICENSE.txt). Bundled dependencies retain their own licenses.
+
 

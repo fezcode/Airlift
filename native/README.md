@@ -28,7 +28,7 @@ Windows outputs:
 
 The release version lives in `native/Directory.Build.props`; `Airlift.Core.AppVersion` reads the resulting assembly stamp, so the CLI banner, both `--version` outputs, the GitHub User-Agent and the desktop About card never hardcode it. `version.ps1` bumps that value and the three inputs that cannot read an assembly: `forge.toml` and the installer references in both READMEs. It exits non-zero if they disagree.
 
-The installer includes the desktop app, CLI and Start Menu shortcut, and defaults to a per-user installation. Forge defaults to `../Forge/build/forge.exe`; override the installer script's `-Forge` argument if needed. Self-contained binaries do not require .NET to be preinstalled. Build artifacts are ignored by Git.
+The installer uses six Mica wizard steps: Welcome, License Agreement, Select Folder, Optional Tasks, Installing, and Finish. It includes the desktop app, CLI, and MIT license, defaults to a per-user installation, and offers optional Desktop and Start Menu shortcuts. “Open Airlift” is selected on the finish page. Forge defaults to `../Forge/build/forge.exe`; override the installer script's `-Forge` argument if needed. Self-contained binaries do not require .NET to be preinstalled. Build artifacts are ignored by Git.
 
 On PowerShell 7, use `./build.ps1 -Test -Publish -Runtime linux-x64` or `osx-arm64` for other platforms. Standard `dotnet build native/Airlift.slnx` also works; set `AVALONIA_TELEMETRY_OPTOUT=1` for restricted builds. The GitHub workflow builds/tests all three OS families and uploads artifacts, but has not been run remotely. OS signing/notarization is not configured.
 

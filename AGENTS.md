@@ -96,6 +96,10 @@ steps in order and stop/report any failure before proceeding:
   must not remove desktop builds or installers. Never clean the whole `dist`
   directory or delete previous installers as part of a build.
 - Keep `forge.toml` on the Mica wizard theme, using Airlift's icon and identity.
+- Keep the six wizard steps in order: welcome, license, folder, shortcuts,
+  install, finish. Use `LICENSE.txt` for the MIT agreement, offer optional
+  Desktop and Start Menu shortcuts, and keep Open Airlift selected on Finish.
+  Include `LICENSE.txt` beside both published executables.
 - Publish self-contained folders with `PublishSingleFile=false`. DLLs, native
   libraries, `.deps.json` and `.runtimeconfig.json` must remain alongside their
   executable; never distribute only the apphost EXE. Forge uses `[[dirs]]` to

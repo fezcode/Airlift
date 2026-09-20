@@ -9,6 +9,9 @@
     <RestorePackagesWithLockFile>true</RestorePackagesWithLockFile>
     <NuGetAudit>true</NuGetAudit>
   </PropertyGroup>
+  <ItemGroup Condition="'$(MSBuildProjectName)' == 'Airlift.Desktop' Or '$(MSBuildProjectName)' == 'Airlift.Cli'">
+    <None Include="$(MSBuildThisFileDirectory)../LICENSE.txt" Link="LICENSE.txt" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" />
+  </ItemGroup>
 </Project>
 
 

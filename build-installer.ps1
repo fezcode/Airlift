@@ -14,7 +14,7 @@ foreach ($file in @('dist/win-x64/desktop/Airlift.exe', 'dist/win-x64/cli/airlif
 }
 foreach ($component in @('desktop', 'cli')) {
     $assembly = if ($component -eq 'desktop') { 'Airlift' } else { 'airlift-cli' }
-    foreach ($required in @("$assembly.dll", "$assembly.deps.json", "$assembly.runtimeconfig.json", 'Airlift.Core.dll', 'coreclr.dll', 'hostfxr.dll', 'e_sqlite3.dll')) {
+    foreach ($required in @("$assembly.dll", "$assembly.deps.json", "$assembly.runtimeconfig.json", 'Airlift.Core.dll', 'coreclr.dll', 'hostfxr.dll', 'e_sqlite3.dll', 'LICENSE.txt')) {
         if (-not (Test-Path -LiteralPath (Join-Path $PSScriptRoot "dist/win-x64/$component/$required") -PathType Leaf)) { throw "Folder publish is incomplete: $component/$required is missing. Rebuild before packaging." }
     }
 }

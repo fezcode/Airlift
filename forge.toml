@@ -24,14 +24,30 @@ title = "A little lift for your everyday."
 body = "Install Airlift to discover and manage your apps from public GitHub releases."
 
 [[steps]]
+type = "license"
+title = "License Agreement"
+body = "Please review the license terms below before continuing the installation."
+file = "LICENSE.txt"
+
+[[steps]]
 type = "folder"
+title = "Select Folder"
+body = "Choose where to install Airlift."
+
+[[steps]]
+type = "shortcuts"
+title = "Select Optional Tasks"
+body = "Choose the shortcuts you would like the installer to create."
 
 [[steps]]
 type = "install"
+title = "Installing..."
+body = "Copying Airlift and its command-line companion to your computer."
 
 [[steps]]
 type = "finish"
-body = "Airlift is ready."
+title = "Installation Complete"
+body = "Airlift has been installed successfully.\n\nClick Finish to close the installer."
 
 [[steps.launches]]
 kind = "app"
@@ -49,8 +65,20 @@ dst = "${INSTALLDIR}/cli"
 
 [[shortcuts]]
 target = "${INSTALLDIR}/Airlift.exe"
+location = "${DESKTOP}/Airlift.lnk"
+name = "Airlift"
+app_id = "Fezcode.Airlift"
+label = "Create Desktop Shortcut"
+optional = true
+default = true
+
+[[shortcuts]]
+target = "${INSTALLDIR}/Airlift.exe"
 location = "${STARTMENU}/Airlift.lnk"
 name = "Airlift"
 app_id = "Fezcode.Airlift"
+label = "Create Start Menu Entry"
+optional = true
+default = true
 
 
