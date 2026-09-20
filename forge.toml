@@ -1,12 +1,14 @@
 [app]
 name = "Airlift"
-version = "0.2.3"
+version = "0.2.5"
 id = "com.fezcode.airlift"
 icon = "native/Airlift.Desktop/Assets/airlift.ico"
 
 [meta]
 publisher = "Fezcode"
 comments = "Your apps. In good hands."
+homepage = "https://github.com/fezcode/Airlift"
+support_url = "https://github.com/fezcode/Airlift/issues"
 
 [ui]
 theme = "mica"
@@ -20,8 +22,8 @@ settings_dirs = ["${LOCALAPPDATA}/Fezcode/Airlift"]
 
 [[steps]]
 type = "welcome"
-title = "A little lift for your everyday."
-body = "Install Airlift to discover and manage your apps from public GitHub releases."
+title = "${app.name} ${app.version}"
+body = "This wizard will install Airlift ${app.version} on your computer.\n\nDiscover, download and manage your apps from public GitHub releases.\n\nClick Next to continue."
 
 [[steps]]
 type = "license"
@@ -32,11 +34,11 @@ file = "LICENSE.txt"
 [[steps]]
 type = "folder"
 title = "Select Folder"
-body = "Choose where to install Airlift."
+body = "Choose where to install Airlift ${app.version}."
 
 [[steps]]
 type = "shortcuts"
-title = "Select Optional Tasks"
+title = "Select Shortcuts"
 body = "Choose the shortcuts you would like the installer to create."
 
 [[steps]]
@@ -68,6 +70,7 @@ target = "${INSTALLDIR}/Airlift.exe"
 location = "${DESKTOP}/Airlift.lnk"
 name = "Airlift"
 app_id = "Fezcode.Airlift"
+icon = "${INSTALLDIR}/airlift.ico"
 label = "Create Desktop Shortcut"
 optional = true
 default = true
@@ -77,8 +80,22 @@ target = "${INSTALLDIR}/Airlift.exe"
 location = "${STARTMENU}/Airlift.lnk"
 name = "Airlift"
 app_id = "Fezcode.Airlift"
+icon = "${INSTALLDIR}/airlift.ico"
 label = "Create Start Menu Entry"
 optional = true
 default = true
 
+# Forge also writes the Windows Apps & Features uninstall record automatically.
+# Keep app.id stable: that record is how Forge detects existing installations.
+[[registry]]
+hive = "HKCU"
+key = 'Software\fezcode\Airlift'
+value = "InstallDir"
+data = "${INSTALLDIR}"
+
+[[registry]]
+hive = "HKCU"
+key = 'Software\fezcode\Airlift'
+value = "Version"
+data = "${app.version}"
 

@@ -191,21 +191,25 @@ public sealed partial class MainWindow
             PackagePlan? plan = action == "uninstall" ? null : _manager.Plan(app);
             var message = action == "uninstall" ? $"Remove {app.Name} and its installed files from this computer. Personal settings and data will be kept. Save your work and close the app before continuing." :
                 $"{(action == "download" ? "Download" : "Download and install")} {app.Name} {plan!.Release.Version} from {app.Repository}.\n\nPackage: {plan.Asset.Name}\nSize: {Ui.Bytes(plan.Asset.Size)}\n\n{(plan.Asset.Sha256 != null ? "Airlift will verify the published SHA-256 digest." : "This release has no SHA-256 digest. Its download cannot be verified against a published hash.")}\n\n{(action != "download" && plan.Format == "forge-exe" ? "Forge will open its setup wizard. Review its license and installation options there. Windows may ask for administrator permission." : "")}";
-            if (!await Confirm(action == "uninstall" ? $"Uninstall {app.Name}?" : $"{(action == "download" ? "Download" : "Install")} {app.Name}?", message, action == "uninstall" ? "Uninstall app" : action == "download" ? "Download" : "Continue to installation", action == "uninstall")) return;
-            _ = RunOperation(app, action, plan?.Asset.Sha256 == null); Navigate("Downloads");
+            var silent = action == "update" && plan?.Format == "forge-exe" && OperatingSystem.IsWindows() && _manager.Installed(app) != null
+                ? new CheckBox { Name = "SilentUpdate", Content = "Install this update silently", IsChecked = false } : null;
+            var option = silent == null ? null : Ui.Stack(8, silent, Ui.MutedText("Skip the wizard and accept this release’s license using its default options. Keep the current installation folder. Save your work and close the app first. Windows may still request permission.", 11));
+            if (!await Confirm(action == "uninstall" ? $"Uninstall {app.Name}?" : $"{(action == "download" ? "Download" : action == "update" ? "Update" : "Install")} {app.Name}?", message, action == "uninstall" ? "Uninstall app" : action == "download" ? "Download" : "Continue to installation", action == "uninstall", option)) return;
+            _ = RunOperation(app, action, plan?.Asset.Sha256 == null, silent?.IsChecked == true); Navigate("Downloads");
         }
         catch (Exception e) { Notice(e.Message); }
     }
-    private async Task RunOperation(CatalogApp app, string action, bool allowUnverified)
+    private async Task RunOperation(CatalogApp app, string action, bool allowUnverified, bool silentUpdate = false)
     {
-        try { await _manager.ExecuteAsync(app, action, allowUnverified); }
+        try { await _manager.ExecuteAsync(app, action, allowUnverified, silentUpdate: silentUpdate); }
         catch (Exception e) { Notice(e.Message); }
         await Dispatcher.UIThread.InvokeAsync(Render);
     }
     private static Window Dialog(string title, double width) => new() { Title = title, Width = width, SizeToContent = SizeToContent.Height, MaxHeight = 800, CanResize = false, WindowStartupLocation = WindowStartupLocation.CenterOwner };
-    private async Task<bool> Confirm(string title, string message, string action, bool danger = false)
+    private async Task<bool> Confirm(string title, string message, string action, bool danger = false, Control? option = null)
     {
         var window = Dialog(title, 485); var body = Ui.Stack(22, Ui.Text(title, 23, weight: FontWeight.SemiBold), Ui.MutedText(message, 12));
+        if (option != null) body.Children.Add(option);
         var buttons = Ui.Row(9, Ui.Button("Cancel", () => window.Close(false)), Ui.Button(action, () => window.Close(true), danger ? "danger" : "primary")); buttons.HorizontalAlignment = HorizontalAlignment.Right; body.Children.Add(buttons);
         window.Content = new Border { Child = body, Padding = new Thickness(28) }; return await window.ShowDialog<bool>(this);
     }
@@ -215,5 +219,4 @@ public sealed partial class MainWindow
         await Launcher.LaunchUriAsync(uri);
     }
 }
-
 

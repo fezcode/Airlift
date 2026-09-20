@@ -5,7 +5,7 @@ using System.Text.Json;
 
 namespace Airlift.Core;
 
-public sealed record ForgeInfo(string Id, string Version, string Architecture, bool NeedsElevation, string DefaultDirectory);
+public sealed record ForgeInfo(string Id, string Version, string Architecture, bool NeedsElevation, string DefaultDirectory, bool SupportsSilentHandoff = false);
 public static class ForgeInspector
 {
     public static ForgeInfo Inspect(string path)
@@ -35,7 +35,9 @@ public static class ForgeInspector
         var elevated = directory.Contains("${PROGRAMFILES}", StringComparison.OrdinalIgnoreCase) ||
             (root.TryGetProperty("registry", out var registry) && registry.ValueKind == JsonValueKind.Array && registry.EnumerateArray().Any(r => r.GetProperty("hive").GetString() == "HKLM")) ||
             (root.TryGetProperty("env", out var env) && env.ValueKind == JsonValueKind.Array && env.EnumerateArray().Any(e => e.GetProperty("scope").GetString() == "machine"));
-        return new(app.GetProperty("id").GetString()!, app.GetProperty("version").GetString()!, arch, elevated, directory);
+        var handoff = root.TryGetProperty("capabilities", out var capabilities) && capabilities.ValueKind == JsonValueKind.Array &&
+            capabilities.EnumerateArray().Any(c => c.ValueKind == JsonValueKind.String && c.GetString() == "silent-update-handoff-v1");
+        return new(app.GetProperty("id").GetString()!, app.GetProperty("version").GetString()!, arch, elevated, directory, handoff);
     }
     public static ForgeInfo Verify(string path, PackagePlan plan)
     {

@@ -35,14 +35,25 @@ public sealed class PackageManager : IDisposable
     public bool HasActiveOperations => !_queuedApps.IsEmpty;
     public bool HasUpdate(CatalogApp app) => !Preferences(app).Pinned && Installed(app) is { } installed && Release(app)?.Release is { } release && SemVersion.IsNewer(release.Version, installed.Version);
     public PackagePlan Plan(CatalogApp app) => PackageResolver.Resolve(app, Release(app)?.Release ?? throw new InvalidOperationException("Check GitHub releases first."), HostPlatform.Os, HostPlatform.Arch);
-    public void RefreshInventory()
+    public bool RefreshInventory()
     {
-        foreach (var app in Apps)
+        // Reconciliation and installer completion share the same cross-process
+        // lock. An older snapshot must never overwrite a just-completed update.
+        FileStream lease;
+        try { lease = Store.AcquireOperationLock(); } catch (IOException) { return false; }
+        using (lease)
         {
-            var installed = _provider.FindInstalled(app);
-            if (installed != null) Store.Put("installed", app.Id, installed); else Store.Remove("installed", app.Id);
+            var changed = false;
+            foreach (var app in Apps)
+            {
+                var installed = _provider.FindInstalled(app);
+                if (installed == Installed(app)) continue;
+                if (installed != null) Store.Put("installed", app.Id, installed); else Store.Remove("installed", app.Id);
+                changed = true;
+            }
+            if (changed) Changed?.Invoke();
+            return changed;
         }
-        Changed?.Invoke();
     }
     public async Task CheckReleasesAsync(bool force = false, CancellationToken ct = default)
     {
@@ -54,9 +65,10 @@ public sealed class PackageManager : IDisposable
     }
     public void Pause(string id) { if (_cancellation.TryGetValue(id, out var cts) && Store.Get<Operation>("operations", id)?.CanCancel == true) cts.Cancel(); }
     public void ClearHistory() { foreach (var op in Store.All<Operation>("operations").Where(o => !o.Active)) Store.Remove("operations", op.Id); Changed?.Invoke(); }
-    public async Task ExecuteAsync(CatalogApp app, string action, bool allowUnverified = false, CancellationToken ct = default)
+    public async Task ExecuteAsync(CatalogApp app, string action, bool allowUnverified = false, CancellationToken ct = default, bool silentUpdate = false)
     {
         if (action is not ("install" or "update" or "download" or "uninstall")) throw new ArgumentException("Unsupported action.");
+        if (silentUpdate && action != "update") throw new ArgumentException("Silent mode is only available for updates.");
         if (!_queuedApps.TryAdd(app.Id, 0)) throw new InvalidOperationException("This app already has an operation queued.");
         var op = new Operation(Guid.NewGuid().ToString("N"), app.Id, app.Name, action, "", "Queued", 0, "Waiting for the package queue", DateTimeOffset.UtcNow);
         using var cancel = CancellationTokenSource.CreateLinkedTokenSource(ct); _cancellation[op.Id] = cancel;
@@ -78,9 +90,11 @@ public sealed class PackageManager : IDisposable
                 Store.Remove("installed", app.Id); Report("Succeeded", 100, "Application removed; settings preserved"); return;
             }
             if (action == "update" && Preferences(app).Pinned) throw new InvalidOperationException("Unpin this version before updating.");
+            if (action == "update" && _provider.FindInstalled(app) == null) throw new InvalidOperationException("This app is no longer installed. Use Install to open its setup wizard.");
             var cache = await _github.GetReleaseAsync(app, Preferences(app).IncludePrerelease, false, cancel.Token);
             if (cache.Release == null) throw new InvalidOperationException(cache.Error ?? "No published release.");
             var plan = PackageResolver.Resolve(app, cache.Release, HostPlatform.Os, HostPlatform.Arch); op = op with { Version = plan.Release.Version };
+            if (silentUpdate && (plan.Os != "windows" || plan.Format != "forge-exe")) throw new NotSupportedException("Silent updates require a Windows Forge installer.");
             if (action != "download" && plan.Asset.Sha256 == null && !allowUnverified) throw new InvalidOperationException("GitHub did not publish a SHA-256 digest. Review and explicitly allow this unverified download before installation.");
             if (action != "download" && _provider.FindInstalled(app) is { } prior && !SemVersion.IsNewer(plan.Release.Version, prior.Version)) throw new InvalidOperationException("The same or a newer version is already installed.");
             Report("Downloading", 0, "Connecting to GitHub");
@@ -89,14 +103,22 @@ public sealed class PackageManager : IDisposable
             if (plan.Format == "forge-exe") await Task.Run(() => ForgeInspector.Verify(file, plan), cancel.Token);
             cancel.Token.ThrowIfCancellationRequested();
             if (action == "download") { Report("Succeeded", 100, plan.Asset.Sha256 == null ? "Downloaded; no publisher digest available" : "Download complete · SHA-256 verified", file); return; }
-            Report("Installing", 100, plan.Format == "forge-exe" ? "Complete the Forge setup window. Airlift is waiting for its result." : "Installing the managed application", file);
-            var result = await _provider.InstallAsync(plan, file, CancellationToken.None);
+            Report("Installing", 100, silentUpdate ? "Updating silently in the existing installation folder…" : plan.Format == "forge-exe" ? "Complete the Forge setup window. Airlift is waiting for its result." : "Installing the managed application", file);
+            var result = silentUpdate
+                ? await _provider.UpdateSilentlyAsync(plan, file, CancellationToken.None)
+                : await _provider.InstallAsync(plan, file, CancellationToken.None);
             Report("Reconciling", 100, "Verifying the installed version"); Store.Put("installed", app.Id, result);
             Report("Succeeded", 100, $"{app.Name} {result.Version} installed");
         }
         catch (OperationCanceledException) { Report("Paused", op.Progress, "Paused. Retry resumes the partial download when supported."); }
         catch (Exception error) { Report("Failed", op.Progress, error.Message); }
-        finally { _cancellation.TryRemove(op.Id, out _); _queuedApps.TryRemove(app.Id, out _); if (entered) _operations.Release(); Changed?.Invoke(); }
+        finally
+        {
+            // Also reconcile cancelled/failed wizards that may have changed
+            // Windows registration before returning an error.
+            if (entered) { try { RefreshInventory(); } catch (Exception) { /* Preserve the operation's actual result. The next inventory refresh can retry. */ } }
+            _cancellation.TryRemove(op.Id, out _); _queuedApps.TryRemove(app.Id, out _); if (entered) _operations.Release(); Changed?.Invoke();
+        }
     }
     public void Dispose() { foreach (var cts in _cancellation.Values) cts.Cancel(); _http.Dispose(); }
 }

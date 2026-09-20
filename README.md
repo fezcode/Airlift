@@ -8,7 +8,7 @@ Built with C# / .NET 10 / Avalonia 12 / SQLite, with GitHub release tracking, do
 
 ## Run the native app
 
-Open `dist/win-x64/desktop/Airlift.exe`, or install `dist/installer/Airlift-Setup-0.2.3.exe`. Both are built locally and include the .NET runtime. Builds use ordinary folders, not bundled executables: keep the DLLs and runtime files beside each EXE. The installer packages the complete desktop and CLI folders.
+Open `dist/win-x64/desktop/Airlift.exe`, or install `dist/installer/Airlift-Setup-0.2.5.exe`. Both are built locally and include the .NET runtime. Builds use ordinary folders, not bundled executables: keep the DLLs and runtime files beside each EXE. The installer packages the complete desktop and CLI folders.
 
 ```powershell
 .\build.ps1 -Test -Run             # Build, test, launch (requires .NET 10 SDK)
@@ -24,7 +24,9 @@ Read the [native build, behavior and validation guide](native/README.md). The se
 
 Open **Settings → Check for Airlift updates**, or use Airlift's card on the **Updates** page. Startup and background checks also track stable releases from `fezcode/Airlift`. Available updates show the new version and Markdown release notes before you proceed.
 
-On Windows x64, Airlift downloads the matching Forge Setup, verifies its published digest (or requests explicit consent when none is published), and checks its embedded app identity, version, and architecture. Airlift closes only after Setup opens successfully; Setup installs the new version and offers to launch it. A portable copy is not overwritten in place. Other platforms link to the release downloads until a native update installer is available. No published release is reported as unavailable, never as “up to date.”
+On Windows x64, Airlift downloads the matching Forge Setup, verifies its published digest (or requests explicit consent when none is published), and checks its embedded app identity, version, and architecture. Airlift closes only after Setup opens successfully; Setup installs the new version and offers to launch it. Installed copies can also select **Install this update silently and reopen Airlift**: a compatible Forge installer waits for Airlift to exit, updates the existing folder, and restarts it after success. A portable copy uses the normal wizard. Other platforms link to the release downloads until a native update installer is available. No published release is reported as unavailable, never as “up to date.”
+
+Managed Windows apps offer an unchecked **Install this update silently** option during update review. Fresh installations always use the wizard. Silent updates preserve the current install folder and use the installer's default options; progress and the verified installed version appear in Downloads. The CLI equivalent is `airlift-cli update <app> --silent`.
 
 ## Run the browser design reference
 

@@ -7,6 +7,19 @@ namespace Airlift.Tests;
 
 public sealed class SelfUpdateTests
 {
+    [Fact]
+    public void UnsupportedSilentInstallerIsRejectedBeforeAirliftCloses()
+    {
+        if (HostPlatform.Os != "windows" || HostPlatform.Arch != "x64") return;
+        var data = CoreTests.ForgeFixture(SelfUpdater.App.Id, "999.0.0");
+        var store = new StateStore(CoreTests.TestDirectory());
+        var file = Path.Combine(store.Root, "Setup.exe"); File.WriteAllBytes(file, data);
+        var prepared = new PreparedSelfUpdate(SelfUpdater.Plan(Release(data), "windows", "x64"), file, Silent: true);
+        Assert.False(ForgeInspector.Inspect(file).SupportsSilentHandoff);
+        var error = Assert.Throws<InvalidOperationException>(() => new SelfUpdateLauncher(store).Start(prepared));
+        Assert.Contains("does not support silent", error.Message);
+    }
+
     internal static AppRelease Release(byte[] data, bool digest = true) => new("v999.0.0", "999.0.0",
         $"https://github.com/{SelfUpdater.Repository}/releases/tag/v999.0.0", "## Improvements\n\n**Faster** startup.", DateTimeOffset.UtcNow, false,
         [new(100, "Airlift-Setup-999.0.0.exe", data.Length, $"https://github.com/{SelfUpdater.Repository}/releases/download/v999.0.0/Airlift-Setup-999.0.0.exe", digest ? Convert.ToHexString(SHA256.HashData(data)) : null)]);

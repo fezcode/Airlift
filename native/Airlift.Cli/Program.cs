@@ -19,8 +19,9 @@ if (args.Length == 0 || args.Contains("--help") || args.Contains("-h"))
     airlift-cli import <file.json>         Import preferences (does not install apps)
 
     Options: --yes (confirm operation), --allow-unverified (explicitly accept missing hash),
+             --silent (updates only; accepts the update license and skips the wizard),
              --data-dir <path> (isolated workspace), --version, --help.
-    Windows installation uses Forge's wizard; no license is accepted automatically.
+    Windows installation uses Forge's wizard by default.
     """); return 0;
 }
 if (args.Contains("--version") || args.Contains("-v")) { Console.WriteLine(AppVersion.Display); return 0; }
@@ -29,8 +30,10 @@ try
     var arguments = args.ToList(); string? dataDir = null; var dataIndex = arguments.IndexOf("--data-dir");
     if (dataIndex >= 0) { if (dataIndex + 1 >= arguments.Count) throw new ArgumentException("--data-dir requires a path."); dataDir = arguments[dataIndex + 1]; arguments.RemoveRange(dataIndex, 2); }
     var yes = arguments.Remove("--yes"); var allowUnverified = arguments.Remove("--allow-unverified");
+    var silentUpdate = arguments.Remove("--silent");
     using var manager = new PackageManager(new StateStore(dataDir));
     var command = arguments[0]; var value = arguments.Count > 1 ? arguments[1] : "";
+    if (silentUpdate && command != "update") throw new ArgumentException("--silent is only supported for updates.");
     if (arguments.Count > 2) throw new ArgumentException("Unexpected arguments. Use --help.");
     if (command is "list" or "search" or "refresh")
     {
@@ -68,9 +71,8 @@ try
     using var cancel = new CancellationTokenSource(); Console.CancelKeyPress += (_, e) => { e.Cancel = true; cancel.Cancel(); };
     string? previous = null;
     manager.Changed += () => { var op = manager.Store.All<Operation>("operations").Where(o => o.AppId == selected.Id).MaxBy(o => o.Started); var line = op == null ? "" : $"{op.Status,-14} {op.Progress,5:F0}%  {op.Message}"; if (line != previous) { Console.WriteLine(line); previous = line; } };
-    await manager.ExecuteAsync(selected, command, allowUnverified, cancel.Token);
+    await manager.ExecuteAsync(selected, command, allowUnverified, cancel.Token, silentUpdate);
     return manager.Store.All<Operation>("operations").Where(o => o.AppId == selected.Id).MaxBy(o => o.Started)?.Status == "Succeeded" ? 0 : 1;
 }
 catch (Exception error) { Console.Error.WriteLine("airlift: " + error.Message); return 1; }
-
 

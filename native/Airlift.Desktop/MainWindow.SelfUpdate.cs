@@ -51,6 +51,11 @@ public sealed partial class MainWindow
         var status = Ui.MutedText(plan == null ? "There is no automatic installer for this platform in this release. Open its downloads to update manually." : "Setup will open after verification and Airlift will close. Keep “Open Airlift” selected in Setup to launch the installed version. A portable copy stays in its original folder.", 12);
         var progress = new ProgressBar { Minimum = 0, Maximum = 100, IsVisible = false };
         var digestConsent = new CheckBox { Content = "Allow this update without a published SHA-256 digest", IsVisible = plan?.Asset.Sha256 == null && plan != null };
+        var silent = new CheckBox { Name = "SilentSelfUpdate", Content = "Install this update silently and reopen Airlift", IsChecked = false,
+            IsVisible = plan != null && _selfUpdateLauncher.SupportsSilentUpdate };
+        silent.IsCheckedChanged += (_, _) => status.Text = silent.IsChecked == true
+            ? "Airlift will close cleanly, accept this release’s license and update in its current installation folder without the wizard. It will reopen after success. Windows may still request permission."
+            : "Setup will open after verification and Airlift will close. Keep “Open Airlift” selected in Setup to launch the installed version.";
         var cancel = Ui.Button("Cancel", window.Close);
         var install = Ui.Button("Download & update", () => { }, "primary", plan != null && plan.Asset.Sha256 != null);
         digestConsent.IsCheckedChanged += (_, _) => install.IsEnabled = plan != null && (plan.Asset.Sha256 != null || digestConsent.IsChecked == true);
@@ -58,7 +63,7 @@ public sealed partial class MainWindow
         install.Click += async (_, _) =>
         {
             if (running) return;
-            running = true; install.IsEnabled = false; digestConsent.IsEnabled = false; progress.IsVisible = true;
+            running = true; install.IsEnabled = false; digestConsent.IsEnabled = false; silent.IsEnabled = false; progress.IsVisible = true;
             try
             {
                 using var lease = _manager.Store.AcquireOperationLock();
@@ -66,14 +71,14 @@ public sealed partial class MainWindow
                     (percent, message) => Dispatcher.UIThread.Post(() => { if (running && !token.IsCancellationRequested) { progress.Value = percent; status.Text = message; } }), token);
                 token.ThrowIfCancellationRequested();
                 if (_manager.HasActiveOperations) throw new InvalidOperationException("Finish or pause active package operations before updating Airlift.");
-                _selfUpdateLauncher.Start(prepared);
+                _selfUpdateLauncher.Start(prepared with { Silent = silent.IsChecked == true });
                 window.Close(); Close();
             }
             catch (OperationCanceledException) when (token.IsCancellationRequested) { }
             catch (Exception error) { status.Text = "Airlift is still open. " + error.Message; }
             finally
             {
-                running = false; digestConsent.IsEnabled = true;
+                running = false; digestConsent.IsEnabled = true; silent.IsEnabled = true;
                 install.IsEnabled = plan != null && (plan.Asset.Sha256 != null || digestConsent.IsChecked == true);
             }
         };
@@ -81,7 +86,7 @@ public sealed partial class MainWindow
             Ui.MutedText(plan == null ? release.Tag : $"{plan.Asset.Name} · {Ui.Bytes(plan.Asset.Size)} · {(plan.Asset.Sha256 == null ? "No published digest" : "SHA-256 verified before launch")}", 11));
         var notes = new ScrollViewer { Content = new MarkdownNotes(string.IsNullOrWhiteSpace(release.Notes) ? "No release notes were published." : release.Notes, release.Url, OpenUrl), Margin = new Thickness(0, 20), HorizontalScrollBarVisibility = Avalonia.Controls.Primitives.ScrollBarVisibility.Disabled };
         var buttons = Ui.Row(8, cancel, Ui.AsyncButton("Release downloads ↗", () => OpenUrl(release.Url), "link"), install); buttons.HorizontalAlignment = HorizontalAlignment.Right;
-        var footer = Ui.Stack(12, status, progress, digestConsent, buttons);
+        var footer = Ui.Stack(12, silent, status, progress, digestConsent, buttons);
         var layout = new Grid { RowDefinitions = new RowDefinitions("Auto,*,Auto"), Margin = new Thickness(27) };
         layout.Children.Add(header); layout.Children.Add(notes); Grid.SetRow(notes, 1); layout.Children.Add(footer); Grid.SetRow(footer, 2);
         window.Content = layout; await window.ShowDialog(this);

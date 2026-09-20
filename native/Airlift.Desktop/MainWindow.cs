@@ -24,6 +24,8 @@ public sealed partial class MainWindow : Window
     private string _page = "Discover", _category = "All apps", _query = "", _collection = "Everyday essentials";
     private bool _checking, _dirty, _list, _initializing;
     private DateTimeOffset _lastScheduledCheck = DateTimeOffset.MinValue;
+    private DateTimeOffset _lastInventoryCheck = DateTimeOffset.MinValue;
+    private bool _refreshingInventory;
     public MainWindow(PackageManager manager, bool startServices = true, ISelfUpdateLauncher? selfUpdateLauncher = null)
     {
         _selfUpdateLauncher = selfUpdateLauncher ?? new SelfUpdateLauncher(manager.Store);
@@ -50,11 +52,13 @@ public sealed partial class MainWindow : Window
         _timer.Tick += async (_, _) =>
         {
             if (_dirty) { _dirty = false; Render(); }
+            if (IsActive && DateTimeOffset.UtcNow - _lastInventoryCheck > TimeSpan.FromSeconds(5)) await RefreshInventoryView();
             if (!_checking && DateTimeOffset.UtcNow - _lastScheduledCheck > TimeSpan.FromHours(_manager.Settings.CheckIntervalHours)) await CheckReleases(false);
         };
         Closing += (_, e) => { if (_manager.HasActiveOperations) { e.Cancel = true; Notice("A package operation is active. Pause downloads or finish the installer before closing Airlift."); } };
         Closed += (_, _) => { _timer.Stop(); _manager.Changed -= OnChanged; };
         SizeChanged += (_, e) => { if (Math.Abs(e.NewSize.Width - e.PreviousSize.Width) > 1) Render(); };
+        if (startServices) Activated += async (_, _) => await RefreshInventoryView();
         if (startServices) Opened += async (_, _) =>
         {
             _lastScheduledCheck = DateTimeOffset.UtcNow; _timer.Start();
@@ -65,6 +69,14 @@ public sealed partial class MainWindow : Window
         Render();
     }
     private void OnChanged() => Dispatcher.UIThread.Post(() => _dirty = true);
+    private async Task RefreshInventoryView()
+    {
+        if (_refreshingInventory || _manager.HasActiveOperations) return;
+        _refreshingInventory = true; _lastInventoryCheck = DateTimeOffset.UtcNow;
+        try { if (await Task.Run(_manager.RefreshInventory) && IsVisible) Render(); }
+        catch (Exception error) { Notice("Could not refresh installed versions: " + error.Message); }
+        finally { _refreshingInventory = false; }
+    }
     private void Notice(string message) => Dispatcher.UIThread.Post(() => _notice.Text = message);
     public void Navigate(string page)
     {
@@ -86,13 +98,13 @@ public sealed partial class MainWindow : Window
     }
     private Control BuildSidebar()
     {
-        var grid = new Grid { RowDefinitions = new RowDefinitions("Auto,*,Auto"), Margin = new Thickness(16, 30, 16, 15) };
+        var grid = new Grid { RowDefinitions = new RowDefinitions("Auto,*,Auto"), Margin = new Thickness(16, 24, 16, 15) };
         var logo = Brand.Mark(44);
         var heading = Ui.Stack(31,
             Ui.Row(12, logo, Ui.Stack(4, Ui.Text("airlift", 31, weight: FontWeight.Bold), Ui.MutedText("B Y  F E Z C O D E", 8))),
             Ui.Card(Ui.Stack(5, Ui.Text("Personal workspace", 12), Ui.MutedText("Your apps. Your space.", 10)), 13));
         grid.Children.Add(heading);
-        var navigation = Ui.Stack(5); navigation.Margin = new Thickness(0, 30, 0, 0);
+        var navigation = Ui.Stack(5); navigation.Margin = new Thickness(0, 20, 0, 12);
         navigation.Children.Add(Ui.MutedText("W O R K S P A C E", 9));
         foreach (var name in new[] { "Discover", "My library", "Updates", "Downloads", "Collections", "Sources" })
         {
@@ -104,11 +116,16 @@ public sealed partial class MainWindow : Window
                 ((StackPanel)button.Content!).Children.Add(_updateBadge);
             }
         }
-        Grid.SetRow(navigation, 1); grid.Children.Add(navigation);
+        var ecosystem = Ui.Stack(5, Ui.Text("Built for your ecosystem", 11), Ui.MutedText("Powered by Forge", 10));
+        ecosystem.Margin = new Thickness(0, 20, 0, 0); navigation.Children.Add(ecosystem);
+        var navigationScroll = new ScrollViewer { Name = "SidebarNavigation", Content = navigation,
+            HorizontalScrollBarVisibility = Avalonia.Controls.Primitives.ScrollBarVisibility.Disabled,
+            VerticalScrollBarVisibility = Avalonia.Controls.Primitives.ScrollBarVisibility.Auto, ClipToBounds = true };
+        Grid.SetRow(navigationScroll, 1); grid.Children.Add(navigationScroll);
         var settings = Brand.Navigation("Settings", () => Navigate("Settings")); _nav["Settings"] = settings;
-        var bottom = Ui.Stack(15, Ui.Separator(), Ui.Stack(5, Ui.Text("Built for your ecosystem", 11), Ui.MutedText("Powered by Forge", 10)), Ui.Separator(), settings,
+        var bottom = Ui.Stack(12, Ui.Separator(), settings,
             Ui.Row(12, Ui.Card(Ui.Text("F", 16), 8, "#303C25"), Ui.Stack(4, Ui.Text("Fezcode", 12), Ui.MutedText("Local workspace", 10))));
-        Grid.SetRow(bottom, 2); grid.Children.Add(bottom);
+        bottom.Name = "SidebarFooter"; Grid.SetRow(bottom, 2); grid.Children.Add(bottom);
         return new Border { Child = grid, Background = Brush.Parse("#151715"), BorderBrush = Ui.Line, BorderThickness = new Thickness(0, 0, 1, 0) };
     }
     private void Render()

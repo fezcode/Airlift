@@ -38,6 +38,7 @@ try {
     $stream.Position = $pe + 24 + 68
     if ($reader.ReadUInt16() -ne 2) { throw 'Setup must be a GUI executable, not a console stub.' }
 } finally { $reader.Dispose(); $stream.Dispose() }
+& (Join-Path $PSScriptRoot 'scripts/verify-installer.ps1') -Path $setup -Version $version
 $destination = [IO.Path]::GetFullPath((Join-Path $installerRoot $filename))
 $boundary = [IO.Path]::GetFullPath($installerRoot) + [IO.Path]::DirectorySeparatorChar
 if (-not $destination.StartsWith($boundary, [StringComparison]::OrdinalIgnoreCase) -or -not ([IO.Path]::GetFullPath($setup)).StartsWith($boundary, [StringComparison]::OrdinalIgnoreCase)) { throw 'Installer paths must stay within dist/installer.' }

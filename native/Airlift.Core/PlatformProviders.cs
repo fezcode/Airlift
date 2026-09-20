@@ -10,6 +10,8 @@ public interface IPlatformProvider
 {
     InstalledApp? FindInstalled(CatalogApp app);
     Task<InstalledApp> InstallAsync(PackagePlan plan, string file, CancellationToken ct);
+    Task<InstalledApp> UpdateSilentlyAsync(PackagePlan plan, string file, CancellationToken ct) =>
+        throw new NotSupportedException("Silent updates are only available for Windows Forge apps.");
     Task UninstallAsync(CatalogApp app, InstalledApp installed, CancellationToken ct);
 }
 public interface IProcessRunner
@@ -44,16 +46,20 @@ public sealed class WindowsForgeProvider(StateStore store, IProcessRunner runner
         }
         return null;
     }
-    public async Task<InstalledApp> InstallAsync(PackagePlan plan, string file, CancellationToken ct)
+    public Task<InstalledApp> InstallAsync(PackagePlan plan, string file, CancellationToken ct) => InstallAsync(plan, file, ct, false);
+    public Task<InstalledApp> UpdateSilentlyAsync(PackagePlan plan, string file, CancellationToken ct) => InstallAsync(plan, file, ct, true);
+    private async Task<InstalledApp> InstallAsync(PackagePlan plan, string file, CancellationToken ct, bool silentUpdate)
     {
         ct.ThrowIfCancellationRequested(); var info = ForgeInspector.Verify(file, plan);
         var previous = FindInstalled(plan.App);
+        if (silentUpdate && previous == null) throw new InvalidOperationException("Silent updates require an existing installation. Use the setup wizard to install this app first.");
         if (previous != null && !SemVersion.IsNewer(plan.Release.Version, previous.Version)) throw new InvalidOperationException("This version is already installed or older than the installed version.");
         if (previous != null) RequireAppClosed(previous.Directory);
-        // Keep Forge's wizard: it handles licenses, custom inputs, and choices using the actual manifest.
+        // The wizard remains the default; silent mode is an explicit update-only choice.
         // Elevate the process we launch, so its process handle represents the real operation.
         var args = ProfileArguments();
-        var exit = await runner.RunAsync(file, args, info.NeedsElevation || previous?.Machine == true, Path.GetDirectoryName(file)!);
+        if (silentUpdate) args.AddRange(["--silent", "--accept-license", "--dir", previous!.Directory]);
+        var exit = await runner.RunAsync(file, args, RequiresElevation(info, previous), Path.GetDirectoryName(file)!);
         if (exit != 0) throw new InvalidOperationException($"Forge returned exit code {exit}.");
         var installed = FindInstalled(plan.App);
         if (installed is null || SemVersion.Compare(installed.Version, plan.Release.Version) != 0)
@@ -77,6 +83,16 @@ public sealed class WindowsForgeProvider(StateStore store, IProcessRunner runner
         finally { if (File.Exists(executable)) File.Delete(executable); if (Directory.Exists(relay)) Directory.Delete(relay); }
     }
     private static List<string> ProfileArguments() => ["--user-localappdata", Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "--user-appdata", Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData)];
+    internal static bool RequiresElevation(ForgeInfo info, InstalledApp? installed)
+    {
+        if (info.NeedsElevation || installed?.Machine == true) return true;
+        if (installed == null) return false;
+        // A custom Program Files installation can have a per-user ARP entry.
+        // Elevate the tracked process directly, rather than losing it to a relay.
+        return new[] { Environment.SpecialFolder.ProgramFiles, Environment.SpecialFolder.ProgramFilesX86, Environment.SpecialFolder.Windows }
+            .Select(Environment.GetFolderPath).Where(p => !string.IsNullOrWhiteSpace(p))
+            .Any(p => PathSafety.IsWithin(p, installed.Directory));
+    }
     private static void RequireAppClosed(string directory)
     {
         foreach (var process in Process.GetProcesses())

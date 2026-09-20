@@ -23,6 +23,80 @@ public static class TestAppBuilder
 public sealed class DesktopTests
 {
     [AvaloniaFact]
+    public async Task ManagedSilentChoiceIsOnlyOfferedForUpdatesAndClearsTheOldVersion()
+    {
+        if (HostPlatform.Os != "windows" || HostPlatform.Arch != "x64") return;
+        foreach (var updating in new[] { false, true })
+        {
+            var data = CoreTests.ForgeFixture();
+            var provider = new UpdateOperationTests.UpdatingProvider();
+            if (!updating) provider.Current = null;
+            using var http = new HttpClient(new ReleaseHistoryTests.Handler(_ => new(System.Net.HttpStatusCode.OK) { Content = new ByteArrayContent(data) }));
+            using var manager = new PackageManager(new StateStore(CoreTests.TestDirectory()), http, provider);
+            manager.RefreshInventory();
+            manager.Store.Put("releases", CoreTests.App.Id + ":stable", new ReleaseCache(CoreTests.Release(data), null, DateTimeOffset.UtcNow, null));
+            var main = new MainWindow(manager, false); main.Show(); main.UpdateLayout(); Dispatcher.UIThread.RunJobs();
+            main.GetVisualDescendants().OfType<Button>().First(b => b.Classes.Contains("identity")).RaiseEvent(new Avalonia.Interactivity.RoutedEventArgs(Button.ClickEvent));
+            var details = Assert.Single(main.OwnedWindows); details.UpdateLayout(); Dispatcher.UIThread.RunJobs();
+            details.GetVisualDescendants().OfType<Button>().Single(b => b.Content as string == (updating ? "Update to 0.87.0" : "Install 0.87.0")).RaiseEvent(new Avalonia.Interactivity.RoutedEventArgs(Button.ClickEvent));
+            var review = Assert.Single(main.OwnedWindows); review.UpdateLayout(); Dispatcher.UIThread.RunJobs();
+            var options = review.GetVisualDescendants().OfType<CheckBox>().Where(c => c.Name == "SilentUpdate").ToArray();
+            if (!updating) { Assert.Empty(options); review.Close(); main.Close(); continue; }
+            var silent = Assert.Single(options); Assert.False(silent.IsChecked); silent.IsChecked = true;
+            Assert.True(review.IsVisible); SaveScreenshot(review, "silent-managed-update");
+            review.GetVisualDescendants().OfType<Button>().Single(b => b.Content as string == "Continue to installation").RaiseEvent(new Avalonia.Interactivity.RoutedEventArgs(Button.ClickEvent));
+            for (var i = 0; i < 200 && manager.Store.All<Operation>("operations").All(o => o.Status != "Succeeded"); i++) { await Task.Delay(10); Dispatcher.UIThread.RunJobs(); }
+            Assert.True(provider.Silent); Assert.False(manager.HasUpdate(CoreTests.App));
+            main.Navigate("My library"); main.UpdateLayout(); Dispatcher.UIThread.RunJobs();
+            Assert.Contains(main.GetVisualDescendants().OfType<TextBlock>(), t => t.Text == "Installed 0.87.0");
+            Assert.DoesNotContain(main.GetVisualDescendants().OfType<Button>(), b => b.Content as string == "Update");
+            main.Close();
+        }
+    }
+
+    [AvaloniaFact]
+    public void SidebarNeverOverlapsFooterAtShortWindowHeights()
+    {
+        using var manager = new PackageManager(new StateStore(CoreTests.TestDirectory()));
+        var window = new MainWindow(manager, false); window.Show();
+        foreach (var height in new[] { 640, 720, 920, 640 })
+        {
+            window.Height = height; window.UpdateLayout(); Dispatcher.UIThread.RunJobs(); window.UpdateLayout();
+            var navigation = window.GetVisualDescendants().OfType<ScrollViewer>().Single(c => c.Name == "SidebarNavigation");
+            var footer = window.GetVisualDescendants().OfType<StackPanel>().Single(c => c.Name == "SidebarFooter");
+            var navTop = navigation.TranslatePoint(default, window)!.Value.Y;
+            var footerTop = footer.TranslatePoint(default, window)!.Value.Y;
+            Assert.True(navTop + navigation.Bounds.Height <= footerTop + .1);
+            var sources = window.GetVisualDescendants().OfType<Button>().Single(b => b.Classes.Contains("nav") && ((StackPanel)b.Content!).Children.OfType<TextBlock>().Any(t => t.Text == "Sources"));
+            sources.BringIntoView(); window.UpdateLayout(); Dispatcher.UIThread.RunJobs(); window.UpdateLayout();
+            var sourceTop = sources.TranslatePoint(default, window)!.Value.Y;
+            Assert.InRange(sourceTop, navTop - 1, footerTop - sources.Bounds.Height + 1);
+            Assert.True(footerTop + footer.Bounds.Height <= window.Bounds.Height);
+        }
+        SaveScreenshot(window, "sidebar-short"); window.Close();
+    }
+
+    [AvaloniaFact]
+    public async Task SilentSelfUpdateIsOptionalAndPassedToHandoff()
+    {
+        if (HostPlatform.Os != "windows" || HostPlatform.Arch != "x64") return;
+        var data = CoreTests.ForgeFixture(SelfUpdater.App.Id, "999.0.0");
+        using var http = new HttpClient(new ReleaseHistoryTests.Handler(_ => new(System.Net.HttpStatusCode.OK) { Content = new ByteArrayContent(data) }));
+        using var manager = new PackageManager(new StateStore(CoreTests.TestDirectory()), http);
+        manager.Store.Put("releases", SelfUpdater.App.Id + ":stable", new ReleaseCache(SelfUpdateTests.Release(data), null, DateTimeOffset.UtcNow, null));
+        var launcher = new FakeSelfUpdateLauncher { Fail = false };
+        var main = new MainWindow(manager, false, launcher); main.Show(); main.Navigate("Updates"); main.UpdateLayout(); Dispatcher.UIThread.RunJobs();
+        main.GetVisualDescendants().OfType<Button>().Single(b => b.Content as string == "Update Airlift").RaiseEvent(new Avalonia.Interactivity.RoutedEventArgs(Button.ClickEvent));
+        var dialog = Assert.Single(main.OwnedWindows); dialog.UpdateLayout(); Dispatcher.UIThread.RunJobs();
+        var silent = dialog.GetVisualDescendants().OfType<CheckBox>().Single(c => c.Name == "SilentSelfUpdate");
+        Assert.True(silent.IsVisible); Assert.False(silent.IsChecked); silent.IsChecked = true;
+        SaveScreenshot(dialog, "silent-self-update");
+        dialog.GetVisualDescendants().OfType<Button>().Single(b => b.Content as string == "Download & update").RaiseEvent(new Avalonia.Interactivity.RoutedEventArgs(Button.ClickEvent));
+        for (var i = 0; i < 200 && main.IsVisible; i++) { await Task.Delay(10); Dispatcher.UIThread.RunJobs(); }
+        Assert.True(launcher.Silent); Assert.Equal(1, launcher.Calls); Assert.False(main.IsVisible);
+    }
+
+    [AvaloniaFact]
     public void AppGridFillsViewportAcrossResizesAndFilters()
     {
         using var manager = new PackageManager(new StateStore(CoreTests.TestDirectory()));
@@ -109,10 +183,13 @@ public sealed class DesktopTests
     {
         public bool Fail = true;
         public int Calls;
+        public bool SupportsSilentUpdate => true;
+        public bool Silent;
         public void Start(PreparedSelfUpdate update)
         {
             Assert.Equal(SelfUpdater.App.Id, ForgeInspector.Verify(update.File, update.Plan).Id);
             Calls++;
+            Silent = update.Silent;
             if (Fail) throw new IOException("Setup was cancelled");
         }
     }

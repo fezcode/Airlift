@@ -100,6 +100,17 @@ steps in order and stop/report any failure before proceeding:
   install, finish. Use `LICENSE.txt` for the MIT agreement, offer optional
   Desktop and Start Menu shortcuts, and keep Open Airlift selected on Finish.
   Include `LICENSE.txt` beside both published executables.
+- Preserve the stable Forge ID `com.fezcode.airlift`; Forge detects installations
+  through its automatically generated Windows uninstall record. Also maintain
+  clockt-style HKCU `Software\fezcode\Airlift` InstallDir and Version values,
+  using `${app.version}` for the version, and publish `airlift.ico` for shortcuts.
+- Packaging must verify the embedded manifest and theme, not only the source
+  TOML or EXE timestamp. Run `scripts/test-forge.ps1` after installer changes;
+  it derives a disposable install/upgrade/uninstall fixture from Airlift's manifest
+  and checks registry, shortcuts, custom paths, CLI files and settings retention.
+  Run Windows installation checks and launch Setup in the normal user context,
+  outside any development sandbox that hides the user's registry or AppData.
+  A successful diagnostic is not a substitute for checking the visible wizard.
 - Publish self-contained folders with `PublishSingleFile=false`. DLLs, native
   libraries, `.deps.json` and `.runtimeconfig.json` must remain alongside their
   executable; never distribute only the apphost EXE. Forge uses `[[dirs]]` to
@@ -124,6 +135,20 @@ These flows are adapted from clockt's `AGENTS.md`.
 
 ## Airlift self-updates and layout
 
+- Silent installation is an explicit, unchecked choice for Windows updates only.
+  Never silently install a missing app or downgrade. Recheck installed state
+  immediately before launch and pass the detected installation directory to
+  Forge; its silent default directory may differ from the user's custom folder.
+  Keep the normal setup wizard available and preserve checksum verification.
+- Silent Airlift self-updates require Forge's `silent-update-handoff-v1` bundle
+  capability: `--wait-pid`, `--update-only`, and `--launch-after-install` allow a
+  clean shutdown before replacing files and restart only after successful setup.
+  Rebuild sibling Forge after runtime changes; do not package an older runtime.
+- Inventory reconciliation must use the package operation lock so an old
+  registry snapshot cannot overwrite a completed update. Refresh when returning
+  to Airlift and after operations; version labels and update counts use that state.
+- Sidebar navigation must scroll within its grid row at short window heights.
+  Keep Settings/profile in a separate footer and verify navigation remains reachable.
 - Airlift tracks its own stable releases from `fezcode/Airlift`, separately from
   the managed app catalog. Compare against `AppVersion.Current`, not an installed
   registry entry, when showing an available update.
