@@ -21,6 +21,46 @@ public sealed class ReleaseHistoryTests
         protected override Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken) => Task.FromResult(send(request));
     }
     [Fact]
+    public async Task APausedGitHubCheckIsRecordedInsteadOfLookingLikeASuccess()
+    {
+        var store = new StateStore(CoreTests.TestDirectory());
+        var apps = Catalog.Load();
+        var tripping = apps[0];
+        var paused = apps[1];
+        // The second repository already has a good release saved from an earlier check.
+        var key = paused.Id + ":stable";
+        store.Put("releases", key, new ReleaseCache(
+            new AppRelease("v1.0.0", "1.0.0", "https://github.com/a/b/releases/tag/v1.0.0", "", DateTimeOffset.UtcNow.AddDays(-1), false, []),
+            "etag", DateTimeOffset.UtcNow.AddHours(-2), null));
+
+        var reset = DateTimeOffset.UtcNow.AddMinutes(30).ToUnixTimeSeconds();
+        var calls = 0;
+        using var http = new HttpClient(new Handler(_ =>
+        {
+            calls++;
+            var response = new System.Net.Http.HttpResponseMessage(System.Net.HttpStatusCode.Forbidden);
+            response.Headers.TryAddWithoutValidation("X-RateLimit-Reset", reset.ToString());
+            return response;
+        }));
+        var github = new GitHubClient(http, store);
+
+        var tripped = await github.GetReleaseAsync(tripping, false, true);
+        Assert.Contains("rate limit", tripped.Error);
+
+        // Every later repository is refused locally, without reaching the network.
+        var result = await github.GetReleaseAsync(paused, false, true);
+        Assert.Equal(1, calls);
+        Assert.Contains("paused", result.Error);
+
+        // The UI reads release state from the store, so a pause that never lands there
+        // is indistinguishable from a successful check of stale data.
+        var stored = store.Get<ReleaseCache>("releases", key)!;
+        Assert.NotNull(stored.Error);
+        Assert.Contains("paused", stored.Error);
+        Assert.Equal("1.0.0", stored.Release!.Version); // The saved release is kept, not discarded.
+    }
+
+    [Fact]
     public async Task HistoryPaginatesRevalidatesAndPreservesOfflineCache()
     {
         var store = new StateStore(CoreTests.TestDirectory()); var app = CoreTests.App; var requests = 0;

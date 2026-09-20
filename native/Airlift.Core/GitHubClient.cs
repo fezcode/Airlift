@@ -35,7 +35,17 @@ public sealed class GitHubClient(HttpClient http, StateStore store)
         {
             var cached = store.Get<ReleaseCache>("releases", key);
             if (cached != null && DateTimeOffset.UtcNow - cached.CheckedAt < (force || cached.Error != null ? TimeSpan.FromMinutes(1) : TimeSpan.FromHours(6))) return cached;
-            if (_blockedUntil > DateTimeOffset.UtcNow) return cached is null ? new(null, null, DateTimeOffset.UtcNow, $"GitHub requests paused until {_blockedUntil.LocalDateTime:t}.") : cached with { Error = $"GitHub requests paused until {_blockedUntil.LocalDateTime:t}; showing cached data." };
+            if (_blockedUntil > DateTimeOffset.UtcNow)
+            {
+                // Every view reads release state from the store, so a refused check has to be
+                // recorded there too. Returning the pause without saving it made a check that
+                // never happened look like a successful one over stale data. CheckedAt keeps the
+                // last real check's time, because nothing was checked here.
+                var paused = cached is null
+                    ? new ReleaseCache(null, null, DateTimeOffset.UtcNow, $"GitHub requests paused until {_blockedUntil.LocalDateTime:t}.")
+                    : cached with { Error = $"GitHub requests paused until {_blockedUntil.LocalDateTime:t}; showing cached data." };
+                store.Put("releases", key, paused); return paused;
+            }
             var endpoint = $"https://api.github.com/repos/{ValidateRepository(app.Repository)}/releases" + (prerelease ? "?per_page=100" : "/latest");
             using var request = new HttpRequestMessage(HttpMethod.Get, endpoint);
             request.Headers.Accept.ParseAdd("application/vnd.github+json"); request.Headers.Add("X-GitHub-Api-Version", "2022-11-28");

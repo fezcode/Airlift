@@ -76,6 +76,40 @@ public sealed class DesktopTests
     }
 
     [AvaloniaFact]
+    public async Task ACheckThatCouldNotRunNeverClaimsAirliftIsUpToDate()
+    {
+        var store = new StateStore(CoreTests.TestDirectory());
+        // A release saved before the pause, older than what is really published by now.
+        store.Put("releases", SelfUpdater.App.Id + ":stable", new ReleaseCache(
+            new AppRelease("v0.0.1", "0.0.1", "https://github.com/fezcode/Airlift/releases/tag/v0.0.1", "",
+                DateTimeOffset.UtcNow.AddDays(-1), false, []), "etag", DateTimeOffset.UtcNow.AddHours(-2), null));
+        var reset = DateTimeOffset.UtcNow.AddMinutes(30).ToUnixTimeSeconds();
+        using var http = new HttpClient(new ReleaseHistoryTests.Handler(_ =>
+        {
+            var response = new System.Net.Http.HttpResponseMessage(System.Net.HttpStatusCode.Forbidden);
+            response.Headers.TryAddWithoutValidation("X-RateLimit-Reset", reset.ToString());
+            return response;
+        }));
+        using var manager = new PackageManager(store, http);
+        var window = new MainWindow(manager, false); window.Show(); window.Navigate("Settings");
+        window.UpdateLayout(); Dispatcher.UIThread.RunJobs();
+
+        // Twice: the first check is refused by GitHub, the second is refused locally while paused.
+        for (var attempt = 0; attempt < 2; attempt++)
+        {
+            window.GetVisualDescendants().OfType<Button>().Single(b => b.Content as string == "Check for Airlift updates")
+                .RaiseEvent(new Avalonia.Interactivity.RoutedEventArgs(Button.ClickEvent));
+            for (var i = 0; i < 200 && manager.SelfUpdate.Cached?.Error == null; i++)
+            { await Task.Delay(10); window.UpdateLayout(); Dispatcher.UIThread.RunJobs(); }
+            window.UpdateLayout(); Dispatcher.UIThread.RunJobs();
+            var texts = window.GetVisualDescendants().OfType<TextBlock>().Select(t => t.Text ?? "").ToArray();
+            Assert.DoesNotContain("You’re running the latest Airlift version.", texts);
+            Assert.Contains(texts, t => t.Contains("rate limit") || t.Contains("paused"));
+        }
+        SaveScreenshot(window, "self-update-paused"); window.Close();
+    }
+
+    [AvaloniaFact]
     public void SearchOffersAClearButtonOnlyWhileItHasText()
     {
         using var manager = new PackageManager(new StateStore(CoreTests.TestDirectory()));
