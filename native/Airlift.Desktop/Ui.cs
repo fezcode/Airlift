@@ -2,13 +2,17 @@ using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Layout;
 using Avalonia.Media;
+using Avalonia.Controls.Shapes;
 using Avalonia.Media.Imaging;
 using Avalonia.Platform;
 using Airlift.Core;
+using Path = Avalonia.Controls.Shapes.Path;
 
 namespace Airlift.Desktop;
 internal static class Ui
 {
+    // Width kept clear for the scrollbar that floats over scrolled content.
+    public const double ScrollGutter = 18;
     public static readonly IBrush Lime = Brush.Parse("#D7F59A");
     public static readonly IBrush Muted = Brush.Parse("#92988D");
     public static readonly IBrush Line = Brush.Parse("#30362C");
@@ -55,6 +59,13 @@ internal static class Ui
         Control content = bitmap != null ? new Image { Source = bitmap, Width = size * .72, Height = size * .72 } : Text(app.Name[..1], size * .5);
         return new Border { Width = size, Height = size, CornerRadius = new CornerRadius(size / 4), Background = Brush.Parse("#252D20"), BorderBrush = Brush.Parse(app.Color), BorderThickness = new Thickness(.4), Child = content };
     }
+    // A stroked vector glyph. Callers bind its Stroke so it follows the host control's Foreground.
+    public static Path Glyph(string data, double size = 10, double thickness = 1.1) => new()
+    {
+        Data = Geometry.Parse(data), Width = size, Height = size, StrokeThickness = thickness,
+        StrokeLineCap = PenLineCap.Round, StrokeJoin = PenLineJoin.Round,
+        HorizontalAlignment = HorizontalAlignment.Center, VerticalAlignment = VerticalAlignment.Center
+    };
     public static Control Separator() => new Border { Height = 1, Background = Line, Margin = new Thickness(0, 6) };
     public static string Bytes(long bytes) => $"{bytes / 1048576d:F1} MB";
 }

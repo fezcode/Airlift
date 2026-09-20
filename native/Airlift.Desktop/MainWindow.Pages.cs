@@ -144,7 +144,9 @@ public sealed partial class MainWindow
         var actions = new WrapPanel { Orientation = Orientation.Horizontal };
         var tabs = Ui.Row(8); var overviewTab = Ui.Button("Overview", () => { }, "chip"); var releasesTab = Ui.Button("Releases", () => { }, "chip");
         tabs.Children.Add(overviewTab); tabs.Children.Add(releasesTab);
-        var scroll = new ScrollViewer { HorizontalScrollBarVisibility = Avalonia.Controls.Primitives.ScrollBarVisibility.Disabled, Margin = new Thickness(0, 18) };
+        // The scrollbar floats over the content, so the body keeps a gutter clear for it the way
+        // the main window's page margin does. Right-aligned values would sit under it otherwise.
+        var scroll = new ScrollViewer { Name = "DetailsScroll", HorizontalScrollBarVisibility = Avalonia.Controls.Primitives.ScrollBarVisibility.Disabled, Margin = new Thickness(0, 18), Padding = new Thickness(0, 0, Ui.ScrollGutter, 0) };
         void SelectTab(bool releases)
         {
             overviewTab.Classes.Set("active", !releases); releasesTab.Classes.Set("active", releases);

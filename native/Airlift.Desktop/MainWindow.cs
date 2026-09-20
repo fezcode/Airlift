@@ -17,6 +17,7 @@ public sealed partial class MainWindow : Window
     private readonly TextBlock _breadcrumb = Ui.MutedText("Workspace   ›   Discover", 12);
     private readonly TextBlock _notice = Ui.MutedText("Local-first. Connected to your public GitHub releases.", 11);
     private readonly TextBox _search = new() { PlaceholderText = "Search apps, tools, possibilities…    Ctrl K", Width = 330 };
+    private readonly Button _clearSearch;
     private readonly Dictionary<string, Button> _nav = [];
     private readonly TextBlock _updateCount = Ui.Text("", 10, "#25311C", FontWeight.SemiBold);
     private Border? _updateBadge;
@@ -26,7 +27,7 @@ public sealed partial class MainWindow : Window
     private readonly Border _status;
     private readonly DispatcherTimer _timer = new() { Interval = TimeSpan.FromSeconds(1) };
     private string _page = "Discover", _category = "All apps", _query = "", _collection = "Everyday essentials";
-    private bool _checking, _dirty, _list, _initializing;
+    private bool _checking, _dirty, _list, _initializing, _hideInstalled;
     private DateTimeOffset _lastScheduledCheck = DateTimeOffset.MinValue;
     private DateTimeOffset _lastInventoryCheck = DateTimeOffset.MinValue;
     private bool _refreshingInventory;
@@ -43,6 +44,12 @@ public sealed partial class MainWindow : Window
         root.Children.Add(BuildSidebar());
         var main = new Grid { RowDefinitions = new RowDefinitions($"{Chrome.Height},70,*,38") }; Grid.SetColumn(main, 1); root.Children.Add(main);
         main.Children.Add(Chrome.TitleBar(this, null, resizable: true));
+        _clearSearch = Ui.Button("", () => { _search.Text = ""; _search.Focus(); }, "clear");
+        var clearGlyph = Ui.Glyph(Chrome.CloseGlyph, 8);
+        clearGlyph.Bind(Avalonia.Controls.Shapes.Shape.StrokeProperty, new Avalonia.Data.Binding("Foreground") { Source = _clearSearch });
+        _clearSearch.Content = clearGlyph;
+        ToolTip.SetTip(_clearSearch, "Clear search"); Avalonia.Automation.AutomationProperties.SetName(_clearSearch, "Clear search");
+        _search.InnerRightContent = _clearSearch;
         _header = Ui.Between(_breadcrumb, _search); _header.Name = "HeaderBar"; _header.Margin = new Thickness(Gutter, 16);
         var headerBar = new Border { Child = _header, BorderBrush = Ui.Line, BorderThickness = new Thickness(0, 0, 0, 1) };
         Grid.SetRow(headerBar, 1); main.Children.Add(headerBar);
@@ -61,6 +68,7 @@ public sealed partial class MainWindow : Window
             _query = query; if (_page is not ("Discover" or "My library" or "Updates")) _page = "Discover"; Render();
         };
         KeyDown += (_, e) => { if (e.Key == Key.K && (e.KeyModifiers.HasFlag(KeyModifiers.Control) || e.KeyModifiers.HasFlag(KeyModifiers.Meta))) { _search.Focus(); e.Handled = true; } };
+        _search.KeyDown += (_, e) => { if (e.Key == Key.Escape && !string.IsNullOrEmpty(_search.Text)) { _search.Text = ""; e.Handled = true; } };
         _manager.Changed += OnChanged;
         _timer.Tick += async (_, _) =>
         {
@@ -111,14 +119,17 @@ public sealed partial class MainWindow : Window
     }
     private Control BuildSidebar()
     {
-        var grid = new Grid { RowDefinitions = new RowDefinitions("Auto,*,Auto"), Margin = new Thickness(16, 24, 16, 15) };
+        var grid = new Grid { RowDefinitions = new RowDefinitions("Auto,*,Auto"), Margin = new Thickness(0, 0, 0, 15) };
         var logo = Brand.Mark(44);
         var heading = Ui.Stack(31,
             Ui.Row(12, logo, Ui.Stack(4, Ui.Text("airlift", 31, weight: FontWeight.Bold), Ui.MutedText("B Y  F E Z C O D E", 8))),
             Ui.Card(Ui.Stack(5, Ui.Text("Personal workspace", 12), Ui.MutedText("Your apps. Your space.", 10)), 13));
-        Chrome.Draggable(heading); // The sidebar reaches the top edge, so its brand block drags the window.
-        grid.Children.Add(heading);
-        var navigation = Ui.Stack(5); navigation.Margin = new Thickness(0, 20, 0, 12);
+        // The sidebar reaches the top edge, so its brand block stands in for a title bar. The
+        // platform finds that region by hit-testing, which a panel without a background fails.
+        var caption = new Border { Name = "SidebarDrag", Background = Brushes.Transparent, Padding = new Thickness(16, 24, 16, 0), Child = heading };
+        Chrome.Draggable(caption);
+        grid.Children.Add(caption);
+        var navigation = Ui.Stack(5); navigation.Margin = new Thickness(16, 20, 16, 12);
         navigation.Children.Add(Ui.MutedText("W O R K S P A C E", 9));
         foreach (var name in new[] { "Discover", "My library", "Updates", "Downloads", "Collections", "Sources" })
         {
@@ -138,7 +149,7 @@ public sealed partial class MainWindow : Window
         Grid.SetRow(navigationScroll, 1); grid.Children.Add(navigationScroll);
         var settings = Brand.Navigation("Settings", () => Navigate("Settings")); _nav["Settings"] = settings;
         var bottom = Ui.Stack(12, Ui.Separator(), settings, VersionCard());
-        bottom.Name = "SidebarFooter"; Grid.SetRow(bottom, 2); grid.Children.Add(bottom);
+        bottom.Margin = new Thickness(16, 0, 16, 0); bottom.Name = "SidebarFooter"; Grid.SetRow(bottom, 2); grid.Children.Add(bottom);
         return new Border { Child = grid, Background = Brush.Parse("#151715"), BorderBrush = Ui.Line, BorderThickness = new Thickness(0, 0, 1, 0) };
     }
     // The footer used to be a decorative profile chip. It now reports the running version and
@@ -167,6 +178,7 @@ public sealed partial class MainWindow : Window
     private void Render()
     {
         _header.Margin = new Thickness(Gutter, 16); _status.Padding = new Thickness(Gutter, 10);
+        _clearSearch.IsVisible = !string.IsNullOrEmpty(_search.Text);
         RenderVersionCard();
         foreach (var (name, button) in _nav) button.Classes.Set("active", name == _page);
         var updateCount = _manager.Apps.Count(_manager.HasUpdate) + (_manager.SelfUpdate.HasUpdate ? 1 : 0); _updateCount.Text = updateCount.ToString();
@@ -231,13 +243,25 @@ public sealed partial class MainWindow : Window
         var visible = _manager.Apps.Where(a => (_category == "All apps" || a.Category == _category) && $"{a.Name} {a.Description} {a.Category}".Contains(_query, StringComparison.OrdinalIgnoreCase));
         if (_page == "My library") visible = visible.Where(a => _manager.Installed(a) != null);
         if (_page == "Updates") visible = visible.Where(_manager.HasUpdate);
-        var apps = visible.ToList();
+        var matching = visible.ToList();
+        // Discover is for finding apps, so it can drop the ones already on this computer.
+        var hiding = _page == "Discover" && _hideInstalled;
+        var apps = hiding ? matching.Where(a => _manager.Installed(a) == null).ToList() : matching;
         if (_page == "Updates" && !_checking && !_initializing)
         {
             var missing = _manager.Apps.Count(a => _manager.Installed(a) != null && !_manager.Preferences(a).Pinned && (_manager.Release(a)?.Release == null || _manager.Release(a)?.Error != null));
             if (missing > 0) content.Children.Add(Ui.Card(Ui.Between(Ui.Stack(5, Ui.Text($"{missing} installed apps couldn’t be checked", 14), Ui.MutedText("Their repositories have no available release data or returned an error.", 11)), Ui.Button("See sources →", () => Navigate("Sources"), "link")), 16));
         }
-        var controls = Ui.Row(7, Ui.Button(_list ? "Grid" : "List", () => { _list = !_list; Render(); }), Ui.AsyncButton(_checking ? "Checking…" : "↻ Check releases", () => CheckReleases(true), enabled: !_checking));
+        var controls = Ui.Row(7);
+        if (_page == "Discover")
+        {
+            var hide = Ui.Button("Hide installed", () => { _hideInstalled = !_hideInstalled; Render(); }, "chip");
+            hide.Classes.Set("active", _hideInstalled);
+            Avalonia.Automation.AutomationProperties.SetName(hide, _hideInstalled ? "Show installed apps" : "Hide installed apps");
+            controls.Children.Add(hide);
+        }
+        controls.Children.Add(Ui.Button(_list ? "Grid" : "List", () => { _list = !_list; Render(); }));
+        controls.Children.Add(Ui.AsyncButton(_checking ? "Checking…" : "↻ Check releases", () => CheckReleases(true), enabled: !_checking));
         content.Children.Add(Ui.Between(Ui.Text(($"{(_page == "Discover" ? "Find your next favorite" : _page == "Updates" ? "Updates for your apps" : "Installed apps")}   {apps.Count}"), 18, weight: FontWeight.SemiBold), controls));
         var categories = new WrapPanel { Orientation = Orientation.Horizontal };
         foreach (var category in new[] { "All apps", "Productivity", "Developer tools", "Creative", "Media", "Utilities", "Gaming" })
@@ -255,6 +279,8 @@ public sealed partial class MainWindow : Window
             if (pinned > 0) detail += $" {pinned} pinned app{(pinned == 1 ? " is" : "s are")} excluded from updates.";
             content.Children.Add(Empty(title, detail));
         }
+        else if (apps.Count == 0 && hiding && matching.Count > 0)
+            content.Children.Add(Empty("You already have them all.", $"All {matching.Count} apps here are installed. Turn off Hide installed to see them again."));
         else if (apps.Count == 0) content.Children.Add(Empty(_page == "My library" ? "Your next setup starts with one app." : "No matches this time.", "Try the catalog, another category, or check GitHub for new releases."));
         else if (_list) { foreach (var app in apps) content.Children.Add(AppCard(app, true)); }
         else content.Children.Add(Cards(apps));

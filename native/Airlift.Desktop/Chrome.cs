@@ -20,7 +20,7 @@ internal static class Chrome
     private const string MinimizeGlyph = "M0 5 L10 5";
     private const string MaximizeGlyph = "M0.5 0.5 L9.5 0.5 L9.5 9.5 L0.5 9.5 Z";
     private const string RestoreGlyph = "M2.5 2.5 L2.5 0.5 L9.5 0.5 L9.5 7.5 L7.5 7.5 M0.5 2.5 L7.5 2.5 L7.5 9.5 L0.5 9.5 Z";
-    private const string CloseGlyph = "M0.5 0.5 L9.5 9.5 M9.5 0.5 L0.5 9.5";
+    public const string CloseGlyph = "M0.5 0.5 L9.5 9.5 M9.5 0.5 L0.5 9.5";
 
     public static void Extend(Window window)
     {
@@ -85,12 +85,7 @@ internal static class Chrome
     {
         var button = Ui.Button("", action);
         button.Classes.Add("chrome"); if (style.Length > 0) button.Classes.Add(style);
-        var path = new Path
-        {
-            Data = Geometry.Parse(glyph), Width = 10, Height = 10, StrokeThickness = 1.1,
-            StrokeLineCap = PenLineCap.Round, StrokeJoin = PenLineJoin.Round,
-            HorizontalAlignment = HorizontalAlignment.Center, VerticalAlignment = VerticalAlignment.Center
-        };
+        var path = Ui.Glyph(glyph);
         path.Bind(Shape.StrokeProperty, new Avalonia.Data.Binding("Foreground") { Source = button });
         button.Content = path;
         WindowDecorationProperties.SetElementRole(button, role);

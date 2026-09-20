@@ -90,7 +90,7 @@ steps in order and stop/report any failure before proceeding:
 - All distributable builds live under `dist/<runtime>/desktop` and
   `dist/<runtime>/cli`; Windows installers live in `dist/installer` as
   `Airlift-Setup-<version>.exe`, matching the other Fezcode apps. Keep Forge,
-  build scripts, CI upload paths and both READMEs consistent with this layout.
+  build scripts and both READMEs consistent with this layout.
 - `artifacts` is for test fixtures, screenshots and the browser design preview.
   Vite must write to `artifacts/web-preview`, never `dist`: its output cleanup
   must not remove desktop builds or installers. Never clean the whole `dist`
@@ -127,9 +127,11 @@ steps in order and stop/report any failure before proceeding:
   Quote arguments containing spaces and keep background build processes hidden.
 - Scope build cleanup and process shutdown to this repository's `dist`
   output; preserve other installations, release installers, and unrelated files.
-- `.github/workflows/native.yml` builds, tests, and publishes on win-x64,
-  linux-x64, and osx-arm64 for every push. A red CI run blocks a release; the
-  installer step is Windows-only and stays local.
+- There is no CI. Airlift is built and released from this machine, so
+  `./build.ps1 -Test -Publish` is the only gate before a release and its tests
+  must pass. That gate covers the host runtime alone: `win-x64` builds are the
+  only ones exercised, so a change touching `linux-x64` or `osx-arm64` has to be
+  built for those runtimes deliberately with `-Runtime`.
 
 These flows are adapted from clockt's `AGENTS.md`.
 

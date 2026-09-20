@@ -62,6 +62,14 @@
     <Style Selector="Button.chrome:pressed /template/ ContentPresenter#PART_ContentPresenter"><Setter Property="Background" Value="#2F362D"/><Setter Property="BorderBrush" Value="Transparent"/></Style>
     <Style Selector="Button.chrome.close:pointerover /template/ ContentPresenter#PART_ContentPresenter"><Setter Property="Background" Value="#C0392B"/><Setter Property="BorderBrush" Value="Transparent"/></Style>
     <Style Selector="Button.chrome.close:pressed /template/ ContentPresenter#PART_ContentPresenter"><Setter Property="Background" Value="#9A2C21"/><Setter Property="BorderBrush" Value="Transparent"/></Style>
+    <Style Selector="Button.clear">
+      <Setter Property="Background" Value="Transparent"/><Setter Property="BorderThickness" Value="0"/><Setter Property="CornerRadius" Value="12"/>
+      <Setter Property="Width" Value="23"/><Setter Property="Height" Value="23"/><Setter Property="MinHeight" Value="0"/>
+      <Setter Property="Padding" Value="0"/><Setter Property="Margin" Value="0,0,5,0"/><Setter Property="Foreground" Value="#8E948A"/>
+    </Style>
+    <Style Selector="Button.clear:pointerover"><Setter Property="Foreground" Value="#E8EAE5"/></Style>
+    <Style Selector="Button.clear:pointerover /template/ ContentPresenter#PART_ContentPresenter"><Setter Property="Background" Value="#2A3124"/><Setter Property="BorderBrush" Value="Transparent"/></Style>
+    <Style Selector="Button.clear:pressed /template/ ContentPresenter#PART_ContentPresenter"><Setter Property="Background" Value="#333B2C"/><Setter Property="BorderBrush" Value="Transparent"/></Style>
     <Style Selector="Button.version">
       <Setter Property="Background" Value="#191E17"/><Setter Property="BorderBrush" Value="#30362C"/><Setter Property="CornerRadius" Value="9"/>
       <Setter Property="Padding" Value="11,10"/><Setter Property="MinHeight" Value="0"/><Setter Property="HorizontalContentAlignment" Value="Stretch"/>

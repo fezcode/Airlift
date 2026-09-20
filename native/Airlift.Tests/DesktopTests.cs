@@ -76,6 +76,137 @@ public sealed class DesktopTests
     }
 
     [AvaloniaFact]
+    public void SearchOffersAClearButtonOnlyWhileItHasText()
+    {
+        using var manager = new PackageManager(new StateStore(CoreTests.TestDirectory()));
+        var window = new MainWindow(manager, false); window.Show(); window.UpdateLayout(); Dispatcher.UIThread.RunJobs();
+        var search = window.GetVisualDescendants().OfType<TextBox>().Single();
+        var clear = Assert.IsType<Button>(search.InnerRightContent);
+        string[] Shown() => window.GetVisualDescendants().OfType<TextBlock>().Select(t => t.Text ?? "").ToArray();
+
+        Assert.False(clear.IsVisible); // Nothing to clear yet.
+        search.Text = "descry"; window.UpdateLayout(); Dispatcher.UIThread.RunJobs();
+        Assert.True(clear.IsVisible);
+        Assert.DoesNotContain("Typewriter", Shown());
+        clear.RaiseEvent(new Avalonia.Interactivity.RoutedEventArgs(Button.ClickEvent));
+        window.UpdateLayout(); Dispatcher.UIThread.RunJobs();
+        Assert.Equal("", search.Text);
+        Assert.False(clear.IsVisible);
+        Assert.Contains("Typewriter", Shown());
+
+        // Escape is the conventional way out of a search field.
+        search.Text = "descry"; search.Focus(); window.UpdateLayout(); Dispatcher.UIThread.RunJobs();
+        window.KeyPress(Key.Escape, RawInputModifiers.None, PhysicalKey.Escape, "");
+        window.KeyRelease(Key.Escape, RawInputModifiers.None, PhysicalKey.Escape, "");
+        window.UpdateLayout(); Dispatcher.UIThread.RunJobs();
+        Assert.Equal("", search.Text); Assert.False(clear.IsVisible);
+        SaveScreenshot(window, "search-clear"); window.Close();
+    }
+
+    [AvaloniaFact]
+    public void TheTopOfTheSidebarDragsTheWindow()
+    {
+        using var manager = new PackageManager(new StateStore(CoreTests.TestDirectory()));
+        var window = new MainWindow(manager, false); window.Show(); window.UpdateLayout(); Dispatcher.UIThread.RunJobs();
+        var caption = window.GetVisualDescendants().OfType<Border>().Single(b => b.Name == "SidebarDrag");
+        Assert.Equal(WindowDecorationsElementRole.TitleBar, WindowDecorationProperties.GetElementRole(caption));
+        // The platform resolves the caption by hit-testing, and a panel without a background is
+        // invisible to that, so the region has to answer a hit across its whole area.
+        foreach (var point in new[] { new Point(12, 8), new Point(114, 34), new Point(200, 96) })
+        {
+            var hit = window.InputHitTest(point) as Visual;
+            Assert.True(hit == caption || (hit != null && hit.GetVisualAncestors().Contains(caption)),
+                $"{point} hits {hit?.GetType().Name ?? "nothing"} rather than the sidebar caption");
+        }
+        // Navigation below it must stay clickable rather than becoming drag surface.
+        var discover = window.GetVisualDescendants().OfType<Button>().Single(b => b.Classes.Contains("nav")
+            && ((StackPanel)b.Content!).Children.OfType<TextBlock>().Any(t => t.Text == "Discover"));
+        Assert.Null(WindowDecorationProperties.GetElementRole(discover) is WindowDecorationsElementRole.TitleBar ? "nav must not drag" : null);
+        window.Close();
+    }
+
+    [AvaloniaFact]
+    public void DiscoverCanHideInstalledAppsAndTheLibraryIsLeftAlone()
+    {
+        using var manager = new PackageManager(new StateStore(CoreTests.TestDirectory()));
+        var owned = manager.Apps.Single(a => a.Name == "Cogas");
+        manager.Store.Put("installed", owned.Id, new InstalledApp(owned.Id, "0.17.0", "test", "fixture"));
+        var window = new MainWindow(manager, false); window.Show(); window.UpdateLayout(); Dispatcher.UIThread.RunJobs();
+        string[] Listed() => window.GetVisualDescendants().OfType<AppGrid>().Single().Children
+            .SelectMany(card => card.GetVisualDescendants().OfType<TextBlock>())
+            .Select(t => t.Text ?? "").Where(t => manager.Apps.Any(a => a.Name == t)).ToArray();
+        Button Toggle() => window.GetVisualDescendants().OfType<Button>().Single(b => b.Content as string == "Hide installed");
+
+        Assert.Contains(owned.Name, Listed());
+        Assert.DoesNotContain("active", Toggle().Classes);
+        Toggle().RaiseEvent(new Avalonia.Interactivity.RoutedEventArgs(Button.ClickEvent));
+        window.UpdateLayout(); Dispatcher.UIThread.RunJobs();
+        Assert.DoesNotContain(owned.Name, Listed());
+        Assert.Contains("Gitland", Listed()); // Not installed here, so it stays on the shelf.
+        Assert.Contains("active", Toggle().Classes);
+        SaveScreenshot(window, "discover-hide-installed");
+
+        // The library exists to show installed apps, so the switch has no business there.
+        window.Navigate("My library"); window.UpdateLayout(); Dispatcher.UIThread.RunJobs();
+        Assert.DoesNotContain(window.GetVisualDescendants().OfType<Button>(), b => b.Content as string == "Hide installed");
+        Assert.Equal(new[] { owned.Name }, Listed());
+
+        window.Navigate("Discover"); window.UpdateLayout(); Dispatcher.UIThread.RunJobs();
+        Assert.DoesNotContain(owned.Name, Listed()); // The choice survives navigation, like the grid/list one.
+        Toggle().RaiseEvent(new Avalonia.Interactivity.RoutedEventArgs(Button.ClickEvent));
+        window.UpdateLayout(); Dispatcher.UIThread.RunJobs();
+        Assert.Contains(owned.Name, Listed());
+        window.Close();
+    }
+
+    [AvaloniaFact]
+    public void MarkdownHeadingsGetRoomForTheirOwnTypeSize()
+    {
+        const string source = "# Gitland 0.9.0\n\n## Windows release\n\nBody copy sits at the paragraph size.";
+        var notes = new MarkdownNotes(source, "https://github.com/fezcode/gitland/releases/tag/v0.9.0", _ => Task.CompletedTask);
+        var window = new Window { Width = 620, Height = 400, Content = new ScrollViewer { Content = notes, Padding = new Thickness(20) } };
+        window.Show(); window.UpdateLayout(); Dispatcher.UIThread.RunJobs();
+        foreach (var (text, size) in new[] { ("Gitland 0.9.0", 23d), ("Windows release", 19d) })
+        {
+            var heading = window.GetVisualDescendants().OfType<SelectableTextBlock>().Single(t => ReadText(t) == text);
+            Assert.Equal(size, heading.FontSize);
+            // A heading inheriting the body's 20px line box loses its ascenders and descenders.
+            Assert.True(heading.LineHeight >= size * 1.25, $"{text}: line height {heading.LineHeight} cannot hold {size}px type");
+            Assert.True(heading.Bounds.Height >= size * 1.25, $"{text}: rendered {heading.Bounds.Height}px tall");
+        }
+        SaveScreenshot(window, "markdown-headings"); window.Close();
+    }
+
+    [AvaloniaFact]
+    public async Task DetailsKeepsItsTextClearOfTheScrollbar()
+    {
+        using var manager = new PackageManager(new StateStore(CoreTests.TestDirectory()));
+        var app = manager.Apps.Single(a => a.Name == "Gitland");
+        var main = new MainWindow(manager, false); main.Show(); main.UpdateLayout(); Dispatcher.UIThread.RunJobs();
+        main.GetVisualDescendants().OfType<Button>()
+            .Single(b => b.Classes.Contains("identity") && b.GetVisualDescendants().OfType<TextBlock>().Any(t => t.Text == app.Name))
+            .RaiseEvent(new Avalonia.Interactivity.RoutedEventArgs(Button.ClickEvent));
+        for (var i = 0; i < 200 && !main.OwnedWindows.Any(); i++) { await Task.Delay(10); Dispatcher.UIThread.RunJobs(); }
+        var dialog = Assert.Single(main.OwnedWindows);
+        dialog.Height = 420; // Force the vertical scrollbar to appear.
+        dialog.UpdateLayout(); Dispatcher.UIThread.RunJobs(); dialog.UpdateLayout();
+        var scroll = dialog.GetVisualDescendants().OfType<ScrollViewer>().Single(s => s.Name == "DetailsScroll");
+        var bar = scroll.GetVisualDescendants().OfType<Avalonia.Controls.Primitives.ScrollBar>()
+            .Single(b => b.Orientation == Orientation.Vertical);
+        Assert.True(bar.IsVisible, "the scrollbar should be showing for this assertion to mean anything");
+        var barLeft = bar.TranslatePoint(default, dialog)!.Value.X;
+        foreach (var value in new[] { "Fezcode", "fezcode/gitland" })
+        {
+            var text = dialog.GetVisualDescendants().OfType<TextBlock>().Single(t => t.Text == value);
+            var right = text.TranslatePoint(new Point(text.Bounds.Width, 0), dialog)!.Value.X;
+            Assert.True(right <= barLeft + .1, $"'{value}' reaches {right}, under the {bar.Bounds.Width}px scrollbar at {barLeft}");
+        }
+        SaveScreenshot(dialog, "details-scrollbar");
+        Assert.Equal(app.Name, dialog.Title);
+        dialog.Close(); main.Close();
+    }
+
+    [AvaloniaFact]
     public void SidebarFooterReportsTheRunningVersionAndAnAvailableUpdate()
     {
         using var manager = new PackageManager(new StateStore(CoreTests.TestDirectory()));

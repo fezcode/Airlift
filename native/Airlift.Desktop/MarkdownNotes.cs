@@ -32,6 +32,8 @@ public sealed class MarkdownNotes : StackPanel
             {
                 case HeadingBlock heading:
                     var title = Paragraph(heading.Inline); title.FontSize = heading.Level switch { 1 => 23, 2 => 19, _ => 15 };
+                    // A heading keeping the body's line box would have its ascenders and descenders cut off.
+                    title.LineHeight = Math.Round(title.FontSize * 1.35);
                     title.FontWeight = FontWeight.SemiBold; title.Foreground = Brush.Parse("#E8EAE5");
                     target.Children.Add(title); break;
                 case ParagraphBlock paragraph: target.Children.Add(Paragraph(paragraph.Inline)); break;
