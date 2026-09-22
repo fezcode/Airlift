@@ -288,6 +288,26 @@
       "defaultDirectory": "${LOCALAPPDATA}/Programs/SirWordALot",
       "homepage": "",
       "artifacts": []
+    },
+    {
+      "id": "io.fezcode.hammeros",
+      "name": "HammerOS",
+      "version": "0.3.4",
+      "publisher": "Samil Bulbul",
+      "category": "Utilities",
+      "tagline": "A desktop inside your desktop.",
+      "description": "A fullscreen retro workspace with your real files, independent shells, and Windows apps embedded in one tiled screen.",
+      "color": "#b3e5da",
+      "icon": "/icons/io.fezcode.hammeros.ico",
+      "project": "hammeros",
+      "repository": "fezcode/hammeros",
+      "manifest": "hammeros/forge.toml",
+      "platforms": [
+        "windows"
+      ],
+      "defaultDirectory": "${LOCALAPPDATA}/Programs/HammerOS",
+      "homepage": "",
+      "artifacts": []
     }
   ]
 }

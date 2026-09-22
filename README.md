@@ -8,7 +8,7 @@ Built with C# / .NET 10 / Avalonia 12 / SQLite, with GitHub release tracking, do
 
 ## Run the native app
 
-Open `dist/win-x64/desktop/Airlift.exe`, or install `dist/installer/Airlift-Setup-0.3.1.exe`. Both are built locally and include the .NET runtime. Builds use ordinary folders, not bundled executables: keep the DLLs and runtime files beside each EXE. The installer packages the complete desktop and CLI folders.
+Open `dist/win-x64/desktop/Airlift.exe`, or install `dist/installer/Airlift-Setup-0.3.2.exe`. Both are built locally and include the .NET runtime. Builds use ordinary folders, not bundled executables: keep the DLLs and runtime files beside each EXE. The installer packages the complete desktop and CLI folders.
 
 ```powershell
 .\build.ps1 -Test -Run             # Build, test, launch (requires .NET 10 SDK)
