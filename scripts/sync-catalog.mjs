@@ -20,31 +20,52 @@ const editorial = {
   typewriter: ['Creative', 'Just you and the next sentence.', 'A distraction-free text editor with warm paper, mechanical key sounds, and the soul of a typewriter.', '#dfceb0'],
   xboard: ['Utilities', 'A different way to type.', 'A native virtual keyboard for controllers, with dual-stick, dial, and Morse input.', '#92c4d2'],
   osXos: ['Utilities', 'System care, with no surprises.', 'Everyday system maintenance with clear explanations, a review before changes, and results you can understand.', '#b8cda0'],
+  SirWordALot: ['Productivity', 'Words that stay with you.', 'A vocabulary and thesaurus trainer. Keep a word with the sentence you met it in, enrich it with real synonyms, then meet it again until it sticks.', '#96c4b1'],
+  hammeros: ['Utilities', 'A desktop inside your desktop.', 'A fullscreen retro workspace with your real files, independent shells, and Windows apps embedded in one tiled screen.', '#b3e5da'],
 };
-// Projects with a Forge manifest but no published GitHub release yet. Airlift could only ever
-// report "Release not checked" for these, so they wait here until they ship one.
-const unpublished = new Set(['fez']);
+// A sibling project joins the shelf by inviting itself: a `properties.piml` holding `(airlift) true`.
+// Without that line a project stays out however complete its Forge manifest is, which is how work in
+// progress and tooling nobody installs (fez, gox) keep to themselves. Airlift itself never enlists.
+const invited = async project => {
+  let piml;
+  try { piml = await readFile(path.join(project, 'properties.piml'), 'utf8'); }
+  catch (error) { if (error.code === 'ENOENT') return false; throw error; }
+  return /^[ \t]*\(airlift\)[ \t]+true[ \t]*$/im.test(piml.replace(/^\uFEFF/, ''));
+};
+const rank = project => { const place = Object.keys(editorial).indexOf(project); return place < 0 ? Number.MAX_SAFE_INTEGER : place; };
 await mkdir(path.join(root, 'public/icons'), { recursive: true });
 await mkdir(path.join(root, 'src/data'), { recursive: true });
 const apps = [];
+const unpublished = [];
 for (const entry of await readdir(workspace, { withFileTypes: true })) {
   if (!entry.isDirectory()) continue;
-  if (path.resolve(workspace, entry.name) === root) continue;
-  if (unpublished.has(entry.name)) continue;
-  const manifestPath = path.join(workspace, entry.name, 'forge.toml');
+  const project = path.resolve(workspace, entry.name);
+  if (project === root) continue;
+  if (!await invited(project)) continue;
+  const manifestPath = path.join(project, 'forge.toml');
   let manifest;
   try { manifest = parse((await readFile(manifestPath, 'utf8')).replace(/^\uFEFF/, '')); }
-  catch (error) { if (error.code === 'ENOENT') continue; throw error; }
+  catch (error) {
+    if (error.code === 'ENOENT') throw new Error(`Invited by properties.piml but carries no Forge manifest: ${manifestPath}`);
+    throw error;
+  }
   const { app, meta, install } = manifest;
   if (!app?.id || !app.name || !app.version) throw new Error(`Invalid app identity: ${manifestPath}`);
+  let remote = '';
+  try { remote = execFileSync('git', ['-C', project, 'remote', 'get-url', 'origin'], { encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'] }).trim(); }
+  catch { remote = ''; }
+  const match = remote.match(/^(?:https:\/\/github\.com\/|git@github\.com:)([\w.-]+\/[\w.-]+?)(?:\.git)?$/);
+  // Airlift follows public GitHub releases, so an invited project that has not been published yet
+  // waits outside the catalog rather than failing the import. It joins the shelf when its repository does.
+  if (!match) { unpublished.push(entry.name); continue; }
   const [category, tagline, description, color] = editorial[entry.name] || ['Utilities', app.name, meta?.comments || 'An app from your Workhammer workspace.', '#b8c5ac'];
   let icon = '';
   if (app.icon) {
-    const asset = await prepareIcon(root, path.join(workspace, entry.name), app.id, app.icon);
+    const asset = await prepareIcon(root, project, app.id, app.icon);
     await writeIcon(asset); icon = asset.icon;
   }
   const artifacts = [];
-  const distDir = path.join(workspace, entry.name, 'dist');
+  const distDir = path.join(project, 'dist');
   try {
     for (const name of await readdir(distDir)) {
       if (name.toLowerCase().endsWith('.exe') && name.includes(app.version) && /setup/i.test(name)) {
@@ -53,12 +74,10 @@ for (const entry of await readdir(workspace, { withFileTypes: true })) {
       }
     }
   } catch (error) { if (error.code !== 'ENOENT') throw error; }
-  const remote = execFileSync('git', ['-C', path.join(workspace, entry.name), 'remote', 'get-url', 'origin'], { encoding: 'utf8' }).trim();
-  const match = remote.match(/^(?:https:\/\/github\.com\/|git@github\.com:)([\w.-]+\/[\w.-]+?)(?:\.git)?$/);
-  if (!match) throw new Error(`A public GitHub repository is required: ${entry.name}`);
   apps.push({ id: app.id, name: app.name, version: app.version, publisher: meta?.publisher || 'Fezcode', category, tagline, description, color, icon, project: entry.name, repository: match[1], manifest: `${entry.name}/forge.toml`, platforms: ['windows'], defaultDirectory: install?.default_dir || '', homepage: meta?.homepage || '', artifacts });
 }
-apps.sort((a, b) => Object.keys(editorial).indexOf(a.project) - Object.keys(editorial).indexOf(b.project));
+apps.sort((a, b) => rank(a.project) - rank(b.project));
 if (new Set(apps.map(app => app.id)).size !== apps.length) throw new Error('Duplicate application IDs');
 await writeFile(path.join(root, 'src/data/catalog.json'), JSON.stringify({ source: 'Local Forge manifests', apps }, null, 2) + '\n');
 console.log(`Imported ${apps.length} Forge apps from ${workspace}. No installers were executed.`);
+if (unpublished.length) console.log(`Waiting for a public GitHub repository: ${unpublished.join(', ')}.`);

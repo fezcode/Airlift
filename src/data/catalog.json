@@ -58,7 +58,7 @@
     {
       "id": "io.clockt.clockt",
       "name": "clockt",
-      "version": "0.5.23",
+      "version": "0.5.24",
       "publisher": "Samil Bulbul",
       "category": "Developer tools",
       "tagline": "Your terminal. Your territory.",
@@ -78,7 +78,7 @@
     {
       "id": "com.fezcode.gitland",
       "name": "Gitland",
-      "version": "0.9.0",
+      "version": "0.14.0",
       "publisher": "Fezcode",
       "category": "Developer tools",
       "tagline": "A clear view of your code.",
@@ -98,7 +98,7 @@
     {
       "id": "io.hisashi.hisashi",
       "name": "Hisashi",
-      "version": "0.6.15",
+      "version": "0.6.17",
       "publisher": "Samil Bulbul",
       "category": "Utilities",
       "tagline": "Make yourself at home.",
@@ -252,7 +252,7 @@
     {
       "id": "com.fezcode.osxos",
       "name": "osXos",
-      "version": "0.1.0",
+      "version": "0.2.1",
       "publisher": "Fezcode",
       "category": "Utilities",
       "tagline": "System care, with no surprises.",
@@ -267,6 +267,26 @@
       ],
       "defaultDirectory": "${LOCALAPPDATA}/Programs/osXos",
       "homepage": "https://github.com/fezcode/osXos",
+      "artifacts": []
+    },
+    {
+      "id": "io.fezcode.sirwordalot",
+      "name": "Sir Word-a-lot",
+      "version": "0.1.2",
+      "publisher": "Samil Bulbul",
+      "category": "Productivity",
+      "tagline": "Words that stay with you.",
+      "description": "A vocabulary and thesaurus trainer. Keep a word with the sentence you met it in, enrich it with real synonyms, then meet it again until it sticks.",
+      "color": "#96c4b1",
+      "icon": "/icons/io.fezcode.sirwordalot.ico",
+      "project": "SirWordALot",
+      "repository": "fezcode/SirWordALot",
+      "manifest": "SirWordALot/forge.toml",
+      "platforms": [
+        "windows"
+      ],
+      "defaultDirectory": "${LOCALAPPDATA}/Programs/SirWordALot",
+      "homepage": "",
       "artifacts": []
     }
   ]

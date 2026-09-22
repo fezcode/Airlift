@@ -8,7 +8,7 @@ Built with C# / .NET 10 / Avalonia 12 / SQLite, with GitHub release tracking, do
 
 ## Run the native app
 
-Open `dist/win-x64/desktop/Airlift.exe`, or install `dist/installer/Airlift-Setup-0.3.0.exe`. Both are built locally and include the .NET runtime. Builds use ordinary folders, not bundled executables: keep the DLLs and runtime files beside each EXE. The installer packages the complete desktop and CLI folders.
+Open `dist/win-x64/desktop/Airlift.exe`, or install `dist/installer/Airlift-Setup-0.3.1.exe`. Both are built locally and include the .NET runtime. Builds use ordinary folders, not bundled executables: keep the DLLs and runtime files beside each EXE. The installer packages the complete desktop and CLI folders.
 
 ```powershell
 .\build.ps1 -Test -Run             # Build, test, launch (requires .NET 10 SDK)
@@ -45,6 +45,8 @@ npm run icons:sync    # Refresh browser + native icons only, preserving catalog 
 npm run build        # TypeScript check + production bundle
 npm test             # GitHub release validation tests (Node 22.18+)
 ```
+
+A sibling project joins the catalog by inviting Airlift in: a `properties.piml` at its root holding `(airlift) true`. Projects without that line are left alone whatever their Forge manifest says, and an invited project with no manifest fails the import rather than quietly dropping out of it. An invited project that has no public GitHub repository yet is named as waiting and skipped, since Airlift follows public releases; it joins the catalog on the next sync after it is published.
 
 The checked-in catalog and icons make the preview portable; Workhammer is needed only when reimporting. To import another directory, run `node scripts/sync-catalog.mjs <directory>`. For icons only, run `node scripts/sync-icons.mjs <directory>`; it reads each existing app's Forge icon and exports its largest PNG frame for the desktop. The browser build writes to `artifacts/web-preview`, keeping its cleanup separate from the native builds and installers in `dist`.
 

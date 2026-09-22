@@ -87,6 +87,8 @@ public static class PackageResolver
         if (arch is not ("x64" or "arm64")) throw new NotSupportedException("This processor architecture is not supported.");
         string? expected = os == "windows" && arch == "x64" ? $"{app.Name}-Setup-{release.Version}.exe" : null;
         var format = "forge-exe";
+        // Sir Word-a-lot's display name is not a file name; its Setup is named after the project.
+        if (app.Id == "io.fezcode.sirwordalot" && expected != null) expected = $"{app.Project}-Setup-{release.Version}.exe";
         if (app.Id == "com.fezcode.typewriter" && os == "linux" && arch == "x64") { expected = "typewriter-linux-x86_64.tar.gz"; format = "portable-tar"; }
         if (app.Id == "com.fezcode.typewriter" && os == "macos") { expected = "typewriter-macos-universal.tar.gz"; format = "portable-tar"; }
         if (expected is null) throw new NotSupportedException($"No mapped {os}/{arch} package for {app.Name}.");

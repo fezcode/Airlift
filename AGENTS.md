@@ -191,5 +191,13 @@ These flows are adapted from clockt's `AGENTS.md`.
 - An icon refresh must preserve catalog versions, descriptions, repositories,
   and other app metadata. `npm run catalog:sync` is a separate, broader import
   of sibling Forge manifests; it also refreshes both sets of icons.
+- `catalog:sync` imports the sibling projects that invite Airlift in: a
+  `properties.piml` holding `(airlift) true`. That marker, not the presence of a
+  `forge.toml`, decides the shelf, and an invited project without a manifest
+  fails the import. An invited project with no public GitHub repository yet is
+  reported as waiting and left out until it is published. A new app also needs an `editorial` entry in
+  `scripts/sync-catalog.mjs` — one of the six Discover categories, a tagline, a
+  description and a colour of its own — and its Windows release asset must
+  resolve through `PackageResolver`, which expects `<Name>-Setup-<version>.exe`.
 - Rebuild and visually check the native catalog after an icon refresh. A
   maintenance build does not trigger RELEASE, a version bump, or publishing.

@@ -36,6 +36,13 @@ public sealed class CoreTests
         Assert.Throws<NotSupportedException>(() => PackageResolver.Resolve(App, release, "linux", "x64"));
         release.Assets.Add(release.Assets[1]); Assert.Throws<NotSupportedException>(() => PackageResolver.Resolve(App, release, "windows", "x64"));
     }
+    [Fact] public void ResolverFollowsTheProjectWhenTheAppNameIsNoFileName()
+    {
+        var app = Catalog.Load().Single(a => a.Id == "io.fezcode.sirwordalot"); Assert.Contains(' ', app.Name);
+        var release = new AppRelease("v0.1.1", "0.1.1", "https://github.com/fezcode/SirWordALot/releases/tag/v0.1.1", "", DateTimeOffset.UtcNow, false,
+            [new(1, "SirWordALot-Setup-0.1.1.exe", 4, "https://github.com/fezcode/SirWordALot/releases/download/v0.1.1/SirWordALot-Setup-0.1.1.exe", null)]);
+        Assert.Equal("SirWordALot-Setup-0.1.1.exe", PackageResolver.Resolve(app, release, "windows", "x64").Asset.Name);
+    }
     [Theory] [InlineData("https://evil.example/app.exe")] [InlineData("https://github.com/other/App/releases/download/v1/x.exe")] [InlineData("http://github.com/fezcode/Descry/releases/download/v1/x.exe")]
     public void RejectsUntrustedAssetUrls(string url) => Assert.Throws<InvalidDataException>(() => GitHubClient.ValidateAssetUrl(url, App.Repository));
     [Fact] public void StorePersistsPinsAndRecoversInterruptedOperations()
