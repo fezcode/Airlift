@@ -194,6 +194,24 @@ public sealed class DesktopTests
     }
 
     [AvaloniaFact]
+    public void ManageOffersTheRepositoryAndTheInstalledProgram()
+    {
+        using var manager = new PackageManager(new StateStore(CoreTests.TestDirectory()));
+        var app = manager.Apps.Single(a => a.Project == "SirWordALot");
+        var directory = CoreTests.TestDirectory(); var program = Path.Combine(directory, "SirWordALot.exe"); File.WriteAllBytes(program, [77, 90]);
+        manager.Store.Put("installed", app.Id, new InstalledApp(app.Id, app.Version, directory, "fixture", program));
+        var main = new MainWindow(manager, false); main.Show(); main.Navigate("My library"); main.UpdateLayout(); Dispatcher.UIThread.RunJobs();
+        main.GetVisualDescendants().OfType<Button>().Single(b => b.Classes.Contains("identity")).RaiseEvent(new Avalonia.Interactivity.RoutedEventArgs(Button.ClickEvent));
+        var details = Assert.Single(main.OwnedWindows); details.UpdateLayout(); Dispatcher.UIThread.RunJobs();
+        string[] Actions() => details.GetVisualDescendants().OfType<Button>().Select(b => b.Content as string ?? "").ToArray();
+        Assert.Contains("See repo ↗", Actions());
+        // An app whose name is no file name still offers its program: Sir Word-a-lot ships SirWordALot.exe.
+        Assert.Contains("Open app ↗", Actions());
+        SaveScreenshot(details, "manage-actions");
+        details.Close(); main.Close();
+    }
+
+    [AvaloniaFact]
     public void EveryThemeAnswersEveryRoleAndIsDistinct()
     {
         Assert.True(Themes.All.Count >= 2);

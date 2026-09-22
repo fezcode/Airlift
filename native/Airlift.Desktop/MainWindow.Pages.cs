@@ -223,6 +223,7 @@ public sealed partial class MainWindow
             status.IsVisible = !string.IsNullOrEmpty(status.Text);
             actions.Children.Clear();
             if (installed?.Executable is { } executable && File.Exists(executable)) actions.Children.Add(Ui.AsyncButton("Open app ↗", async () => { var file = await StorageProvider.TryGetFileFromPathAsync(executable); if (file != null) await Launcher.LaunchFileAsync(file); }));
+            actions.Children.Add(Ui.AsyncButton("See repo ↗", () => OpenUrl($"https://github.com/{app.Repository}")));
             if (plan != null)
             {
                 var canInstall = installed == null || SemVersion.IsNewer(plan.Release.Version, installed.Version);

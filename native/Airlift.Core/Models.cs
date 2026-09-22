@@ -97,3 +97,21 @@ public static class PackageResolver
         return new(app, release, matches[0], os, arch, format);
     }
 }
+public static class InstalledExecutable
+{
+    // The program is named after the app, which is the project for most of them and no file name at all
+    // for some ("Sir Word-a-lot"). The uninstall record's icon settles the rest, but only when it points
+    // at a program inside the installation: Forge usually writes the .ico that sits beside it.
+    public static string? Resolve(string directory, CatalogApp app, string? displayIcon)
+    {
+        foreach (var name in new[] { app.Name, app.Project })
+        {
+            if (string.IsNullOrWhiteSpace(name) || name.IndexOfAny(Path.GetInvalidFileNameChars()) >= 0) continue;
+            var candidate = Path.Combine(directory, name + ".exe");
+            if (File.Exists(candidate)) return Path.GetFullPath(candidate);
+        }
+        var icon = displayIcon?.Split(',')[0].Trim().Trim('"');
+        return !string.IsNullOrWhiteSpace(icon) && icon.EndsWith(".exe", StringComparison.OrdinalIgnoreCase)
+            && Path.IsPathFullyQualified(icon) && PathSafety.IsWithin(directory, icon) && File.Exists(icon) ? Path.GetFullPath(icon) : null;
+    }
+}

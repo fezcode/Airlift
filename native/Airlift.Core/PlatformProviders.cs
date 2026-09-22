@@ -41,8 +41,8 @@ public sealed class WindowsForgeProvider(StateStore store, IProcessRunner runner
             using var key = hive.OpenSubKey(@"Software\Microsoft\Windows\CurrentVersion\Uninstall\" + app.Id);
             if (key?.GetValue("InstallLocation") is not string directory || !Path.IsPathFullyQualified(directory) || !Directory.Exists(directory)) continue;
             if (key.GetValue("DisplayVersion") is not string version) continue;
-            var executable = Path.Combine(directory, app.Name + ".exe");
-            return new(app.Id, version, Path.GetFullPath(directory), "forge", File.Exists(executable) ? executable : null, machine);
+            var executable = InstalledExecutable.Resolve(directory, app, key.GetValue("DisplayIcon") as string);
+            return new(app.Id, version, Path.GetFullPath(directory), "forge", executable, machine);
         }
         return null;
     }

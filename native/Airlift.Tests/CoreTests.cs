@@ -43,6 +43,23 @@ public sealed class CoreTests
             [new(1, "SirWordALot-Setup-0.1.1.exe", 4, "https://github.com/fezcode/SirWordALot/releases/download/v0.1.1/SirWordALot-Setup-0.1.1.exe", null)]);
         Assert.Equal("SirWordALot-Setup-0.1.1.exe", PackageResolver.Resolve(app, release, "windows", "x64").Asset.Name);
     }
+    [Fact] public void OpenAppFindsTheProgramWhenTheAppNameIsNoFileName()
+    {
+        var directory = TestDirectory(); var icon = Path.Combine(directory, "SirWordALot.ico"); File.WriteAllBytes(icon, [0, 0, 1, 0]);
+        var app = new CatalogApp("io.fezcode.sirwordalot", "Sir Word-a-lot", "0.1.2", "Samil Bulbul", "Productivity", "", "", "#96c4b1", "", "SirWordALot", "fezcode/SirWordALot", "");
+        Assert.Null(InstalledExecutable.Resolve(directory, app, icon));
+        var program = Path.Combine(directory, "SirWordALot.exe"); File.WriteAllBytes(program, [77, 90]);
+        Assert.Equal(program, InstalledExecutable.Resolve(directory, app, icon));
+        Assert.Equal(program, InstalledExecutable.Resolve(directory, app, null));
+    }
+    [Fact] public void OpenAppNeverLeavesTheInstallation()
+    {
+        var directory = TestDirectory(); var outside = Path.Combine(TestDirectory(), "elsewhere.exe"); File.WriteAllBytes(outside, [77, 90]);
+        var app = new CatalogApp("io.fezcode.hammeros", "HammerOS", "0.3.4", "Samil Bulbul", "Utilities", "", "", "#b3e5da", "", "hammeros", "fezcode/hammeros", "");
+        Assert.Null(InstalledExecutable.Resolve(directory, app, outside));
+        var program = Path.Combine(directory, "HammerOS.exe"); File.WriteAllBytes(program, [77, 90]);
+        Assert.Equal(program, InstalledExecutable.Resolve(directory, app, outside));
+    }
     [Theory] [InlineData("https://evil.example/app.exe")] [InlineData("https://github.com/other/App/releases/download/v1/x.exe")] [InlineData("http://github.com/fezcode/Descry/releases/download/v1/x.exe")]
     public void RejectsUntrustedAssetUrls(string url) => Assert.Throws<InvalidDataException>(() => GitHubClient.ValidateAssetUrl(url, App.Repository));
     [Fact] public void StorePersistsPinsAndRecoversInterruptedOperations()
