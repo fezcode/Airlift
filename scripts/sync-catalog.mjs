@@ -22,6 +22,8 @@ const editorial = {
   osXos: ['Utilities', 'System care, with no surprises.', 'Everyday system maintenance with clear explanations, a review before changes, and results you can understand.', '#b8cda0'],
   SirWordALot: ['Productivity', 'Words that stay with you.', 'A vocabulary and thesaurus trainer. Keep a word with the sentence you met it in, enrich it with real synonyms, then meet it again until it sticks.', '#96c4b1'],
   hammeros: ['Utilities', 'A desktop inside your desktop.', 'A fullscreen retro workspace with your real files, independent shells, and Windows apps embedded in one tiled screen.', '#b3e5da'],
+  TARMAN: ['Utilities', 'See what just happened.', 'A task manager and resource monitor that keeps ten minutes of history, so you can scroll back to a spike and find the process behind it.', '#e3a6c0'],
+  Qemik: ['Developer tools', 'Virtual machines, with backbone.', 'A native QEMU desktop. Create a Linux workspace, keep a Windows sandbox, or give an old system another life.', '#a9b8d9'],
 };
 // A sibling project joins the shelf by inviting itself: a `properties.piml` holding `(airlift) true`.
 // Without that line a project stays out however complete its Forge manifest is, which is how work in

@@ -4,7 +4,7 @@
     {
       "id": "com.fezcode.descry",
       "name": "Descry",
-      "version": "0.88.0",
+      "version": "0.92.0",
       "publisher": "Fezcode",
       "category": "Productivity",
       "tagline": "A little space for big ideas.",
@@ -21,8 +21,8 @@
       "homepage": "",
       "artifacts": [
         {
-          "file": "Descry-Setup-0.88.0.exe",
-          "bytes": 26003610,
+          "file": "Descry-Setup-0.92.0.exe",
+          "bytes": 26061302,
           "platform": "windows",
           "format": "forge-exe"
         }
@@ -31,7 +31,7 @@
     {
       "id": "com.fezcode.atelier",
       "name": "Atelier",
-      "version": "0.4.0",
+      "version": "0.5.0",
       "publisher": "Fezcode",
       "category": "Creative",
       "tagline": "Every image deserves a good frame.",
@@ -48,8 +48,8 @@
       "homepage": "https://github.com/fezcode/Atelier",
       "artifacts": [
         {
-          "file": "Atelier-Setup-0.4.0.exe",
-          "bytes": 87055099,
+          "file": "Atelier-Setup-0.5.0.exe",
+          "bytes": 87704803,
           "platform": "windows",
           "format": "forge-exe"
         }
@@ -58,7 +58,7 @@
     {
       "id": "io.clockt.clockt",
       "name": "clockt",
-      "version": "0.5.24",
+      "version": "0.5.26",
       "publisher": "Samil Bulbul",
       "category": "Developer tools",
       "tagline": "Your terminal. Your territory.",
@@ -78,7 +78,7 @@
     {
       "id": "com.fezcode.gitland",
       "name": "Gitland",
-      "version": "0.14.0",
+      "version": "0.14.2",
       "publisher": "Fezcode",
       "category": "Developer tools",
       "tagline": "A clear view of your code.",
@@ -98,7 +98,7 @@
     {
       "id": "io.hisashi.hisashi",
       "name": "Hisashi",
-      "version": "0.6.17",
+      "version": "0.6.29",
       "publisher": "Samil Bulbul",
       "category": "Utilities",
       "tagline": "Make yourself at home.",
@@ -178,7 +178,7 @@
     {
       "id": "com.fezcode.cogas",
       "name": "Cogas",
-      "version": "0.17.0",
+      "version": "0.19.1",
       "publisher": "Fezcode",
       "category": "Gaming",
       "tagline": "All your games. One library.",
@@ -252,7 +252,7 @@
     {
       "id": "com.fezcode.osxos",
       "name": "osXos",
-      "version": "0.2.1",
+      "version": "0.2.5",
       "publisher": "Fezcode",
       "category": "Utilities",
       "tagline": "System care, with no surprises.",
@@ -272,7 +272,7 @@
     {
       "id": "io.fezcode.sirwordalot",
       "name": "Sir Word-a-lot",
-      "version": "0.1.2",
+      "version": "0.1.5",
       "publisher": "Samil Bulbul",
       "category": "Productivity",
       "tagline": "Words that stay with you.",
@@ -292,7 +292,7 @@
     {
       "id": "io.fezcode.hammeros",
       "name": "HammerOS",
-      "version": "0.3.4",
+      "version": "0.3.5",
       "publisher": "Samil Bulbul",
       "category": "Utilities",
       "tagline": "A desktop inside your desktop.",
@@ -307,6 +307,46 @@
       ],
       "defaultDirectory": "${LOCALAPPDATA}/Programs/HammerOS",
       "homepage": "",
+      "artifacts": []
+    },
+    {
+      "id": "com.fezcode.tarman",
+      "name": "Tarman",
+      "version": "0.1.0",
+      "publisher": "Fezcode",
+      "category": "Utilities",
+      "tagline": "See what just happened.",
+      "description": "A task manager and resource monitor that keeps ten minutes of history, so you can scroll back to a spike and find the process behind it.",
+      "color": "#e3a6c0",
+      "icon": "/icons/com.fezcode.tarman.ico",
+      "project": "TARMAN",
+      "repository": "fezcode/Tarman",
+      "manifest": "TARMAN/forge.toml",
+      "platforms": [
+        "windows"
+      ],
+      "defaultDirectory": "${LOCALAPPDATA}/Programs/Tarman",
+      "homepage": "https://github.com/fezcode/Tarman",
+      "artifacts": []
+    },
+    {
+      "id": "com.fezcode.qemik",
+      "name": "Qemik",
+      "version": "0.1.2",
+      "publisher": "Fezcode",
+      "category": "Developer tools",
+      "tagline": "Virtual machines, with backbone.",
+      "description": "A native QEMU desktop. Create a Linux workspace, keep a Windows sandbox, or give an old system another life.",
+      "color": "#a9b8d9",
+      "icon": "/icons/com.fezcode.qemik.ico",
+      "project": "Qemik",
+      "repository": "fezcode/Qemik",
+      "manifest": "Qemik/forge.toml",
+      "platforms": [
+        "windows"
+      ],
+      "defaultDirectory": "${LOCALAPPDATA}/Programs/Qemik",
+      "homepage": "https://github.com/fezcode/Qemik",
       "artifacts": []
     }
   ]
