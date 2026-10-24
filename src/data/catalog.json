@@ -368,6 +368,26 @@
       "defaultDirectory": "${LOCALAPPDATA}/Programs/Lounge",
       "homepage": "",
       "artifacts": []
+    },
+    {
+      "id": "com.fezcode.beetle",
+      "name": "Beetle",
+      "version": "0.1.0",
+      "publisher": "Fezcode",
+      "category": "Utilities",
+      "tagline": "Your screen, in colour.",
+      "description": "Control an ELK-BLEDOM Bluetooth LED strip from your PC: colour, brightness, and an ambient mode that follows your screen from the tray.",
+      "color": "#6fd9b8",
+      "icon": "/icons/com.fezcode.beetle.ico",
+      "project": "Beetle",
+      "repository": "fezcode/Beetle",
+      "manifest": "Beetle/forge.toml",
+      "platforms": [
+        "windows"
+      ],
+      "defaultDirectory": "${LOCALAPPDATA}/Programs/Beetle",
+      "homepage": "https://github.com/fezcode/Beetle",
+      "artifacts": []
     }
   ]
 }
