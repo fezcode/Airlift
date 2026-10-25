@@ -25,7 +25,7 @@ const editorial = {
   TARMAN: ['Utilities', 'See what just happened.', 'A task manager and resource monitor that keeps ten minutes of history, so you can scroll back to a spike and find the process behind it.', '#e3a6c0'],
   Qemik: ['Developer tools', 'Virtual machines, with backbone.', 'A native QEMU desktop. Create a Linux workspace, keep a Windows sandbox, or give an old system another life.', '#a9b8d9'],
   Lounge: ['Media', 'Your PC, on the couch.', 'A media center you drive with an Xbox controller: films, music, streaming, apps and files, in five themes, without a keyboard or mouse.', '#8fb2f0'],
-  Beetle: ['Utilities', 'Your screen, in colour.', 'Control an ELK-BLEDOM Bluetooth LED strip from your PC: colour, brightness, and an ambient mode that follows your screen from the tray.', '#6fd9b8'],
+  Beetle: ['Utilities', 'Your screen, in colour.', 'Control an ELK-BLEDOM Bluetooth LED strip from your PC: colour, brightness, and ambient, rainbow and music modes, from the tray.', '#6fd9b8'],
 };
 // A sibling project joins the shelf by inviting itself: a `properties.piml` holding `(airlift) true`.
 // Without that line a project stays out however complete its Forge manifest is, which is how work in
