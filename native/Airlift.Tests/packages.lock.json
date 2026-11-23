@@ -425,10 +425,15 @@
           "xunit.v3.runner.common": "[3.2.2]"
         }
       },
+      "ZstdSharp.Port": {
+        "type": "Transitive",
+        "resolved": "0.8.8",
+        "contentHash": "UIDFkA5DC3en3tOJ3Mof11yBx9kUQLsaeo/oFdvN6Bbkr9E9+VCqfIadHci8cu+I51K2Sl7XYWVl2R/mA75NBQ=="
+      },
       "Airlift": {
         "type": "Project",
         "dependencies": {
-          "Airlift.Core": "[0.2.1, )",
+          "Airlift.Core": "[0.3.5, )",
           "Avalonia": "[12.1.2, )",
           "Avalonia.Desktop": "[12.1.2, )",
           "Avalonia.Fonts.Inter": "[12.1.2, )",
@@ -439,7 +444,8 @@
       "airlift.core": {
         "type": "Project",
         "dependencies": {
-          "Microsoft.Data.Sqlite": "[10.0.12, )"
+          "Microsoft.Data.Sqlite": "[10.0.12, )",
+          "ZstdSharp.Port": "[0.8.8, )"
         }
       }
     }

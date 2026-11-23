@@ -19,22 +19,34 @@ public static class ForgeInspector
         input.Position = peOffset; Span<byte> pe = stackalloc byte[6]; input.ReadExactly(pe);
         if (!pe[..4].SequenceEqual("PE\0\0"u8)) throw new InvalidDataException("Invalid PE signature.");
         var arch = BinaryPrimitives.ReadUInt16LittleEndian(pe[4..]) switch { 0x8664 => "x64", 0xaa64 => "arm64", 0x14c => "x86", _ => "unknown" };
-        input.Seek(-72, SeekOrigin.End); Span<byte> trailer = stackalloc byte[72]; input.ReadExactly(trailer);
-        if (!trailer[..8].SequenceEqual("FORGE\0\0\0"u8) || !trailer[64..].SequenceEqual("\0\0\0FORGE"u8) || BinaryPrimitives.ReadUInt32LittleEndian(trailer[8..]) != 1)
+        var payloadEnd = Forge2Inspector.PayloadEnd(input, peOffset); input.Position = payloadEnd - 72; Span<byte> trailer = stackalloc byte[72]; input.ReadExactly(trailer);
+        var forge2 = trailer[..8].SequenceEqual("FRGTRL2A"u8) && trailer[64..].SequenceEqual("FRGTRL2B"u8) && BinaryPrimitives.ReadUInt32LittleEndian(trailer[8..]) == 2;
+        if (!forge2 && (!trailer[..8].SequenceEqual("FORGE\0\0\0"u8) || !trailer[64..].SequenceEqual("\0\0\0FORGE"u8) || BinaryPrimitives.ReadUInt32LittleEndian(trailer[8..]) != 1))
             throw new InvalidDataException("Missing or unsupported Forge trailer.");
         var offset = BinaryPrimitives.ReadUInt64LittleEndian(trailer[16..]); var length = BinaryPrimitives.ReadUInt64LittleEndian(trailer[24..]);
-        if (offset > (ulong)(input.Length - 72) || length != (ulong)(input.Length - 72) - offset || length == 0) throw new InvalidDataException("Invalid Forge payload bounds.");
+        if (offset > (ulong)(payloadEnd - 72) || length != (ulong)(payloadEnd - 72) - offset || length == 0) throw new InvalidDataException("Invalid Forge payload bounds.");
         using var payload = new SliceStream(input, (long)offset, (long)length);
         if (!SHA256.HashData(payload).AsSpan().SequenceEqual(trailer.Slice(32, 32))) throw new InvalidDataException("Forge payload checksum mismatch.");
-        payload.Position = 0; using var zip = new ZipArchive(payload, ZipArchiveMode.Read);
+        payload.Position = 0;
+        using var json = forge2 ? Forge2Inspector.ReadManifest(payload) : ReadZipManifest(payload);
+        var root = forge2 ? json.RootElement.GetProperty("manifest") : json.RootElement;
+        return ReadInfo(root, arch);
+    }
+    private static JsonDocument ReadZipManifest(Stream payload)
+    {
+        using var zip = new ZipArchive(payload, ZipArchiveMode.Read);
         var manifest = zip.GetEntry("manifest.json") ?? throw new InvalidDataException("Forge manifest missing.");
         if (manifest.Length > 2_000_000) throw new InvalidDataException("Forge manifest is too large.");
-        using var stream = manifest.Open(); using var json = JsonDocument.Parse(stream); var root = json.RootElement;
+        using var stream = manifest.Open(); return JsonDocument.Parse(stream);
+    }
+    private static ForgeInfo ReadInfo(JsonElement root, string arch)
+    {
         var app = root.GetProperty("app");
         var directory = root.GetProperty("install").GetProperty("default_dir").GetString() ?? "";
         var elevated = directory.Contains("${PROGRAMFILES}", StringComparison.OrdinalIgnoreCase) ||
             (root.TryGetProperty("registry", out var registry) && registry.ValueKind == JsonValueKind.Array && registry.EnumerateArray().Any(r => r.GetProperty("hive").GetString() == "HKLM")) ||
             (root.TryGetProperty("env", out var env) && env.ValueKind == JsonValueKind.Array && env.EnumerateArray().Any(e => e.GetProperty("scope").GetString() == "machine"));
+        elevated |= new[] { "services", "firewall" }.Any(name => root.TryGetProperty(name, out var entries) && entries.ValueKind == JsonValueKind.Array && entries.GetArrayLength() > 0);
         var handoff = root.TryGetProperty("capabilities", out var capabilities) && capabilities.ValueKind == JsonValueKind.Array &&
             capabilities.EnumerateArray().Any(c => c.ValueKind == JsonValueKind.String && c.GetString() == "silent-update-handoff-v1");
         return new(app.GetProperty("id").GetString()!, app.GetProperty("version").GetString()!, arch, elevated, directory, handoff);
@@ -58,3 +70,4 @@ public static class ForgeInspector
         public override void Flush() { } public override void SetLength(long value) => throw new NotSupportedException(); public override void Write(byte[] buffer, int offset, int count) => throw new NotSupportedException();
     }
 }
+
