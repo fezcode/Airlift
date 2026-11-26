@@ -26,6 +26,7 @@ const editorial = {
   Qemik: ['Developer tools', 'Virtual machines, with backbone.', 'A native QEMU desktop. Create a Linux workspace, keep a Windows sandbox, or give an old system another life.', '#a9b8d9'],
   Lounge: ['Media', 'Your PC, on the couch.', 'A media center you drive with an Xbox controller: films, music, streaming, apps and files, in five themes, without a keyboard or mouse.', '#8fb2f0'],
   Beetle: ['Utilities', 'Your screen, in colour.', 'Control an ELK-BLEDOM Bluetooth LED strip from your PC: colour, brightness, and ambient, rainbow and music modes, from the tray.', '#6fd9b8'],
+  'drops-for-desktop': ['Utilities', 'From this device to that one.', 'Send a file to your other device from a window or the tray. Drag it in, paste it, or send the clipboard; everything deletes itself after an hour.', '#a3d1b6'],
 };
 // A sibling project joins the shelf by inviting itself: a `properties.piml` holding `(airlift) true`.
 // Without that line a project stays out however complete its Forge manifest is, which is how work in

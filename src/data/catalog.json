@@ -388,6 +388,26 @@
       "defaultDirectory": "${LOCALAPPDATA}/Programs/Beetle",
       "homepage": "https://github.com/fezcode/Beetle",
       "artifacts": []
+    },
+    {
+      "id": "com.fezcode.drops",
+      "name": "Drops",
+      "version": "0.1.0",
+      "publisher": "Fezcode",
+      "category": "Utilities",
+      "tagline": "From this device to that one.",
+      "description": "Send a file to your other device from a window or the tray. Drag it in, paste it, or send the clipboard; everything deletes itself after an hour.",
+      "color": "#a3d1b6",
+      "icon": "/icons/com.fezcode.drops.ico",
+      "project": "drops-for-desktop",
+      "repository": "fezcode/drops-for-desktop",
+      "manifest": "drops-for-desktop/forge.toml",
+      "platforms": [
+        "windows"
+      ],
+      "defaultDirectory": "${PROGRAMFILES}/Drops",
+      "homepage": "https://github.com/fezcode/drops-for-desktop",
+      "artifacts": []
     }
   ]
 }
