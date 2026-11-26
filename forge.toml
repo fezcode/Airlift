@@ -11,7 +11,7 @@ homepage = "https://github.com/fezcode/Airlift"
 support_url = "https://github.com/fezcode/Airlift/issues"
 
 [ui]
-theme = "mica"
+theme = "glass"
 window_title = "Airlift Setup"
 
 [install]
