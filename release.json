@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "generated": "2026-11-27T12:22:48.730Z",
+  "generated": "2026-11-27T19:55:57.089Z",
   "apps": {
     "fezcode/Airlift": {
       "available": true,
@@ -1387,6 +1387,24 @@
     "fezcode/drops-for-desktop": {
       "available": true,
       "releases": [
+        {
+          "tag_name": "v0.1.1",
+          "html_url": "https://github.com/fezcode/drops-for-desktop/releases/tag/v0.1.1",
+          "body": "## What's new\n\n### Download all\nA new **Download all** button next to **Remove all** saves everything in the drop as one zip, just like on the Drops website. Pick where to save it and every file lands in a single archive; files with the same name are kept apart as `name (2).ext`.\n\n## Install\nDownload `Drops-Setup-0.1.1.exe` below and run it. It upgrades 0.1.0 in place.\n\nmacOS (`.dmg`) and Linux (`.tar.gz`) builds are attached to this release automatically a few minutes after it is published.",
+          "published_at": "2026-11-27T19:55:34Z",
+          "prerelease": false,
+          "draft": false,
+          "assets": [
+            {
+              "id": 801851628,
+              "name": "Drops-Setup-0.1.1.exe",
+              "size": 58278295,
+              "state": "uploaded",
+              "browser_download_url": "https://github.com/fezcode/drops-for-desktop/releases/download/v0.1.1/Drops-Setup-0.1.1.exe",
+              "digest": "sha256:f3b0107809ed1c8b6db9fae9af12bc7a1e10ec28d68a82ba5bf5b6350f7c5444"
+            }
+          ]
+        },
         {
           "tag_name": "v0.1.0",
           "html_url": "https://github.com/fezcode/drops-for-desktop/releases/tag/v0.1.0",
