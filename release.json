@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "generated": "2026-11-27T22:20:32.485Z",
+  "generated": "2026-11-27T23:05:14.400Z",
   "apps": {
     "fezcode/Airlift": {
       "available": true,
@@ -1805,6 +1805,24 @@
       "available": true,
       "releases": [
         {
+          "tag_name": "v1.0.32",
+          "html_url": "https://github.com/fezcode/Lounge/releases/tag/v1.0.32",
+          "body": "## Lounge v1.0.32\n\n### Bitmap subtitles\n- Blu-ray (PGS) subtitles no longer stay stuck on screen after skipping ahead.\n- Rewinding no longer draws an old line over the current one.\n- Every new subtitle now replaces the one before it, and a seek drops lines whose end was never read, so reading that part again restores their real timing.\n",
+          "published_at": "2026-11-27T23:04:50Z",
+          "prerelease": false,
+          "draft": false,
+          "assets": [
+            {
+              "id": 802380570,
+              "name": "Lounge-Setup-1.0.32.exe",
+              "size": 150217744,
+              "state": "uploaded",
+              "browser_download_url": "https://github.com/fezcode/Lounge/releases/download/v1.0.32/Lounge-Setup-1.0.32.exe",
+              "digest": "sha256:0082611a9bb82ded830db5c9e5b6a81d2431663c802d30e1db54648d03f1aad4"
+            }
+          ]
+        },
+        {
           "tag_name": "v1.0.31",
           "html_url": "https://github.com/fezcode/Lounge/releases/tag/v1.0.31",
           "body": "﻿## Lounge v1.0.31\n\n### Waiting screen\n\n- **Leave Lounge alone on a menu and it turns into a loading screen.** Ten illustrated scenes, each a dark black-and-white background with a figure or prop in full colour in front, the two layers zooming at different speeds and cutting on the beat. The LOUNGE mark in the corner has a band of light sweeping across it.\n- **Its own music.** A tense orchestral theme written for Lounge: strings sawing a sixteenth-note figure, a low string pad, a choir and timpani, building through four sections and settling back so the loop closes on itself.\n- **Turn it on in Settings > General > Waiting screen** and choose how long it waits, from 5 seconds to 5 minutes (30 seconds by default). Any button brings the menu back, and that press goes nowhere else. It never starts during a film, on a web page, in Starfall or while an app launched from Lounge is open, and the idle dim still takes over after its own time.\n\n### Heatwave theme\n\n- **A neon-sunset crime caper.** Hot pink on deep purple, tall condensed capitals, and a new home layout: the destination's illustrated scene fills the screen (the beach, the hills at night, the drive-in, the coast road), the destinations stack down the left with the chosen one on a slanted pink bar, and its collection runs along the bottom. Right or Down reaches the collection; Left or Up comes back.\n- **The waiting screen's theme is its music**, starting the moment the theme shows.\n",
@@ -2143,24 +2161,6 @@
               "state": "uploaded",
               "browser_download_url": "https://github.com/fezcode/Lounge/releases/download/v1.0.13/Lounge-Setup-1.0.13.exe",
               "digest": "sha256:061a8c316eee7448dbcfd36c4a4bd45f9c47af711fc988973f692a1d9c0a7168"
-            }
-          ]
-        },
-        {
-          "tag_name": "v1.0.11",
-          "html_url": "https://github.com/fezcode/Lounge/releases/tag/v1.0.11",
-          "body": "## New\n- **Settings > Web > Identify to sites as**: choose Lounge's built-in browser, Microsoft Edge or Google Chrome. Streaming sites choose their video protection by browser, and some refuse built-in browsers.\n- **Playback diagnostics** now also record the display-protection (HDCP) check and where page errors come from.\n\n## Fixes\n- The **X** button now shows in the button bar on the Web and other browse screens, and opens a site's or item's options there.\n- **Passwords:** Lounge's built-in browser no longer saves passwords or form entries. Diagnostics record nothing while you type in a password field, and drop any line about passwords or codes. Pressing Y on a password field opens the masked keyboard.\n\nDownload `Lounge-Setup-1.0.11.exe` below.",
-          "published_at": "2026-10-15T19:36:42Z",
-          "prerelease": false,
-          "draft": false,
-          "assets": [
-            {
-              "id": 644946491,
-              "name": "Lounge-Setup-1.0.11.exe",
-              "size": 158518787,
-              "state": "uploaded",
-              "browser_download_url": "https://github.com/fezcode/Lounge/releases/download/v1.0.11/Lounge-Setup-1.0.11.exe",
-              "digest": "sha256:f1806067901b56152dccd21dca50795cae7f05d846f68338e41d825e6a353bf1"
             }
           ]
         }
