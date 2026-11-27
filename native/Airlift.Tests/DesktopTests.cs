@@ -94,7 +94,7 @@ public sealed class DesktopTests
         var window = new MainWindow(manager, false); window.Show(); window.Navigate("Settings");
         window.UpdateLayout(); Dispatcher.UIThread.RunJobs();
 
-        // Twice: the first check is refused by GitHub, the second is refused locally while paused.
+        // Twice: the first check is refused by GitHub, the second reuses that failure without asking again.
         for (var attempt = 0; attempt < 2; attempt++)
         {
             window.GetVisualDescendants().OfType<Button>().Single(b => b.Content as string == "Check for Airlift updates")
@@ -104,9 +104,9 @@ public sealed class DesktopTests
             window.UpdateLayout(); Dispatcher.UIThread.RunJobs();
             var texts = window.GetVisualDescendants().OfType<TextBlock>().Select(t => t.Text ?? "").ToArray();
             Assert.DoesNotContain("You’re running the latest Airlift version.", texts);
-            Assert.Contains(texts, t => t.Contains("rate limit") || t.Contains("paused"));
+            Assert.Contains(texts, t => t.Contains("release list could not be loaded"));
         }
-        SaveScreenshot(window, "self-update-paused"); window.Close();
+        SaveScreenshot(window, "self-update-check-failed"); window.Close();
     }
 
     [AvaloniaFact]
@@ -290,7 +290,7 @@ public sealed class DesktopTests
         dialog.UpdateLayout(); Dispatcher.UIThread.RunJobs();
         var shown = dialog.GetVisualDescendants().OfType<TextBlock>().Select(t => t.Text ?? "").ToArray();
         Assert.Contains(shown, t => t.Contains("could not check"));
-        Assert.Contains(shown, t => t.Contains("rate limit") || t.Contains("paused"));
+        Assert.Contains(shown, t => t.Contains("release list could not be loaded"));
         SaveScreenshot(dialog, "check-failed-modal");
         dialog.Close(); Dispatcher.UIThread.RunJobs();
 
@@ -610,15 +610,10 @@ public sealed class DesktopTests
         window.Close();
     }
     [AvaloniaFact]
-    public async Task ReleaseHistoryRendersNotesAssetsAndLoadsOlderVersions()
+    public async Task ReleaseHistoryRendersNotesAssetsAndEveryIndexedVersion()
     {
-        var requests = 0;
-        using var http = new HttpClient(new ReleaseHistoryTests.Handler(_ =>
-        {
-            requests++; var response = new System.Net.Http.HttpResponseMessage(System.Net.HttpStatusCode.OK)
-            { Content = new StringContent("[" + ReleaseHistoryTests.ReleaseJson(requests == 1 ? "v2.0.0" : "v1.0.0") + "]") };
-            if (requests == 1) response.Headers.TryAddWithoutValidation("Link", "<https://api.github.com/next>; rel=\"next\""); return response;
-        }));
+        using var http = new HttpClient(new ReleaseHistoryTests.Handler(_ => ReleaseHistoryTests.IndexResponse(ReleaseHistoryTests.IndexJson(
+            ReleaseHistoryTests.ReleaseJson("v2.0.0"), ReleaseHistoryTests.ReleaseJson("v1.0.0", published: "2026-01-01T00:00:00Z")))));
         using var manager = new PackageManager(new StateStore(CoreTests.TestDirectory()), http);
         using (var json = System.Text.Json.JsonDocument.Parse(ReleaseHistoryTests.ReleaseJson("v2.0.0")))
             manager.Store.Put("releases", CoreTests.App.Id + ":stable", new ReleaseCache(GitHubClient.ParseRelease(json.RootElement, CoreTests.App.Repository), null, DateTimeOffset.UtcNow, null));
@@ -630,9 +625,8 @@ public sealed class DesktopTests
         var text = window.GetVisualDescendants().OfType<TextBlock>().Select(x => x.Text).ToList();
         Assert.Contains("v2.0.0", text); Assert.Contains("Descry-Setup-2.0.0.exe", text);
         Assert.Contains(window.GetVisualDescendants().OfType<SelectableTextBlock>(), t => ReadText(t).Contains("Faster startup"));
-        var older = window.GetVisualDescendants().OfType<Button>().Single(b => b.Content as string == "Load older releases");
-        older.RaiseEvent(new Avalonia.Interactivity.RoutedEventArgs(Button.ClickEvent)); window.UpdateLayout(); Dispatcher.UIThread.RunJobs();
-        Assert.Contains(window.GetVisualDescendants().OfType<TextBlock>(), t => t.Text == "v1.0.0"); Assert.False(older.IsVisible);
+        Assert.Contains("v1.0.0", text); // The index holds the whole history, so nothing is left to page through.
+        Assert.False(window.GetVisualDescendants().OfType<Button>().Single(b => b.Content as string == "Load older releases").IsVisible);
         SaveScreenshot(window, "release-history");
         window.GetVisualDescendants().OfType<Button>().Single(b => b.Content as string == "Overview").RaiseEvent(new Avalonia.Interactivity.RoutedEventArgs(Button.ClickEvent));
         window.UpdateLayout(); Dispatcher.UIThread.RunJobs();
@@ -666,10 +660,12 @@ public sealed class DesktopTests
     {
         var preview = new TaskCompletionSource<HttpResponseMessage>(TaskCreationOptions.RunContinuationsAsynchronously);
         var previewStarted = false;
-        using var http = new HttpClient(new AsyncHandler(request =>
+        var indexJson = ReleaseHistoryTests.IndexJson(ReleaseHistoryTests.ReleaseJson("v3.0.0-rc.1", true), ReleaseHistoryTests.ReleaseJson("v2.0.0"));
+        using var http = new HttpClient(new AsyncHandler(_ =>
         {
-            if (request.RequestUri!.Query == "?per_page=100") { previewStarted = true; return preview.Task; }
-            return Task.FromResult(new HttpResponseMessage(System.Net.HttpStatusCode.OK) { Content = new StringContent("[" + ReleaseHistoryTests.ReleaseJson("v2.0.0") + "]") });
+            // Only the preview channel needs the index here; the stable release is already saved.
+            if (!previewStarted) { previewStarted = true; return preview.Task; }
+            return Task.FromResult(ReleaseHistoryTests.IndexResponse(indexJson));
         }));
         var store = new StateStore(CoreTests.TestDirectory()); var app = CoreTests.App;
         using (var json = System.Text.Json.JsonDocument.Parse(ReleaseHistoryTests.ReleaseJson("v2.0.0")))
@@ -691,7 +687,7 @@ public sealed class DesktopTests
         ClickCheck(channel); Assert.True(previewStarted); Assert.True(manager.Preferences(app).IncludePrerelease); Assert.True(dialog.IsVisible);
         Assert.DoesNotContain(dialog.GetVisualDescendants().OfType<Button>(), b => b.IsEnabled && (b.Content as string)?.StartsWith("Update to ") == true);
         ClickCheck(channel); Assert.False(manager.Preferences(app).IncludePrerelease); Assert.True(dialog.IsVisible);
-        preview.SetResult(new(System.Net.HttpStatusCode.OK) { Content = new StringContent("[" + ReleaseHistoryTests.ReleaseJson("v3.0.0-rc.1", true) + "]") });
+        preview.SetResult(ReleaseHistoryTests.IndexResponse(indexJson));
         for (var i = 0; i < 200 && (manager.Store.Get<ReleaseCache>("releases", app.Id + ":preview")?.Release == null ||
             !dialog.GetVisualDescendants().OfType<TextBlock>().Any(t => t.Text == "Latest release  ·  v2.0.0")); i++)
         { await Task.Delay(10); dialog.UpdateLayout(); Dispatcher.UIThread.RunJobs(); }
@@ -729,35 +725,29 @@ public sealed class DesktopTests
         SaveScreenshot(window, "markdown-notes"); window.Close();
     }
     [AvaloniaFact]
-    public async Task StartupRevalidatesAndShowsUpdatesBeforeTheLastRepositoryResponds()
+    public async Task StartupReadsTheIndexOnceAndShowsUpdates()
     {
         var app = CoreTests.App; var store = new StateStore(CoreTests.TestDirectory());
         using (var json = System.Text.Json.JsonDocument.Parse(ReleaseHistoryTests.ReleaseJson("v1.0.0")))
             store.Put("releases", app.Id + ":stable", new ReleaseCache(GitHubClient.ParseRelease(json.RootElement, app.Repository), null, DateTimeOffset.UtcNow.AddHours(-1), null));
-        var slow = new TaskCompletionSource<HttpResponseMessage>(TaskCreationOptions.RunContinuationsAsynchronously);
         var calls = 0;
-        using var http = new HttpClient(new AsyncHandler(request =>
-        {
-            calls++;
-            if (calls == 1) return Task.FromResult(new HttpResponseMessage(System.Net.HttpStatusCode.OK) { Content = new StringContent(ReleaseHistoryTests.ReleaseJson("v2.0.0")) });
-            if (calls == 2) return slow.Task;
-            return Task.FromResult(new HttpResponseMessage(System.Net.HttpStatusCode.NotFound));
-        }));
+        var index = ReleaseHistoryTests.Index((app.Repository, true, [ReleaseHistoryTests.ReleaseJson("v2.0.0")]),
+            (SelfUpdater.Repository, true, [ReleaseHistoryTests.ReleaseJson("v0.0.1", repository: SelfUpdater.Repository)]));
+        using var http = new HttpClient(new AsyncHandler(_ => { calls++; return Task.FromResult(ReleaseHistoryTests.IndexResponse(index)); }));
         using var manager = new PackageManager(store, http, new InstalledFixture(app));
         var window = new MainWindow(manager); window.Show(); window.UpdateLayout(); Dispatcher.UIThread.RunJobs();
         for (var i = 0; i < 50 && !window.GetVisualDescendants().OfType<Button>().Any(b => b.Content as string == "Review updates →"); i++)
         { await Task.Delay(100); window.UpdateLayout(); Dispatcher.UIThread.RunJobs(); }
-        Assert.Equal(2, calls); Assert.False(slow.Task.IsCompleted);
         Assert.Contains(window.GetVisualDescendants().OfType<TextBlock>(), t => t.Text == "1 app update available");
         Assert.Contains(window.GetVisualDescendants().OfType<Button>(), b => b.Content as string == "Update");
         var badge = window.GetVisualDescendants().OfType<Border>().Single(b => b.Name == "UpdateBadge"); Assert.True(badge.IsVisible);
         SaveScreenshot(window, "updates-discover");
         window.Navigate("Updates"); window.UpdateLayout(); Dispatcher.UIThread.RunJobs();
         Assert.Contains(window.GetVisualDescendants().OfType<TextBlock>(), t => t.Text == "Update available · 1.0.0 → 2.0.0");
-        slow.SetResult(new(System.Net.HttpStatusCode.NotFound));
         for (var i = 0; i < 50 && !window.GetVisualDescendants().OfType<TextBlock>().Any(t => t.Text?.StartsWith("Release check complete.") == true); i++)
         { await Task.Delay(20); window.UpdateLayout(); Dispatcher.UIThread.RunJobs(); }
         Assert.Contains(window.GetVisualDescendants().OfType<TextBlock>(), t => t.Text?.Contains("1 update available.") == true);
+        Assert.Equal(1, calls); // Every app and Airlift itself came from the same request.
         SaveScreenshot(window, "updates-available"); window.Close();
     }
     [AvaloniaFact]
@@ -771,6 +761,26 @@ public sealed class DesktopTests
         Assert.DoesNotContain(window.GetVisualDescendants().OfType<TextBlock>(), t => t.Text == "You’re all caught up.");
         manager.SetPreferences(app, new AppPreferences(Pinned: true)); window.Navigate("Updates"); window.UpdateLayout(); Dispatcher.UIThread.RunJobs();
         Assert.Contains(window.GetVisualDescendants().OfType<TextBlock>(), t => t.Text == "Your installed versions are pinned.");
+        window.Close();
+    }
+    [AvaloniaFact]
+    public void AppsWithoutAPublicRepositoryAreHiddenUnlessInstalled()
+    {
+        using var manager = new PackageManager(new StateStore(CoreTests.TestDirectory()));
+        var hidden = manager.Apps.Single(a => a.Name == "Cogas");
+        manager.Store.Put("releases", hidden.Id + ":stable", new ReleaseCache(null, null, DateTimeOffset.UtcNow, null, Unavailable: true));
+        string[] Texts(Window w) => w.GetVisualDescendants().OfType<TextBlock>().Select(t => t.Text ?? "").ToArray();
+        var window = new MainWindow(manager, false); window.Show();
+        foreach (var page in new[] { "Discover", "Sources", "Collections" })
+        {
+            window.Navigate(page); window.UpdateLayout(); Dispatcher.UIThread.RunJobs();
+            Assert.DoesNotContain("Cogas", Texts(window));
+        }
+        manager.Store.Put("installed", hidden.Id, new InstalledApp(hidden.Id, "1.0.0", "fixture", "fixture"));
+        window.Navigate("My library"); window.UpdateLayout(); Dispatcher.UIThread.RunJobs();
+        Assert.Contains("Cogas", Texts(window));
+        window.Navigate("Updates"); window.UpdateLayout(); Dispatcher.UIThread.RunJobs();
+        Assert.DoesNotContain("Some updates couldn’t be checked.", Texts(window));
         window.Close();
     }
     private sealed class InstalledFixture(CatalogApp installedApp) : IPlatformProvider

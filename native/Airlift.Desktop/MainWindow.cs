@@ -122,26 +122,24 @@ public sealed partial class MainWindow : Window
             await Task.Run(_manager.RefreshInventory); await _manager.CheckReleasesAsync(force);
             await CheckSelfUpdate(force);
             var updates = _manager.Apps.Count(_manager.HasUpdate) + (_manager.SelfUpdate.HasUpdate ? 1 : 0);
-            var problems = _manager.Apps.Select(a => _manager.Release(a)?.Error)
+            var problems = _manager.Apps.Where(a => !_manager.IsUnavailable(a)).Select(a => _manager.Release(a)?.Error)
                 .Append(_manager.SelfUpdate.Cached?.Error).Where(e => !string.IsNullOrEmpty(e)).Select(e => e!).ToList();
             var summary = $"Release check complete. {updates} update{(updates == 1 ? "" : "s")} available.";
             if (problems.Count == 0) Notice(summary);
             else
             {
                 var reason = problems.GroupBy(e => e).OrderByDescending(g => g.Count()).First().Key;
-                Notice($"{summary} {problems.Count} of {_manager.Apps.Count + 1} repositories could not be checked. {reason}", problem: true);
+                Notice($"{summary} {problems.Count} of {_manager.VisibleApps.Count + 1} apps could not be checked. {reason}", problem: true);
                 if (force) await Problem("Some releases could not be checked", ReasonAdvice(reason), reason);
             }
         }
         catch (Exception e) { Notice(e.Message, problem: true); if (force) await Problem("The release check failed", ReasonAdvice(e.Message), e.Message); }
         finally { _checking = false; Render(); }
     }
-    // GitHub allows 60 unauthenticated requests an hour per address, and Airlift spends one per
-    // repository, so this is the limit users meet in practice. Say what to do, not just what broke.
+    // Every check reads one release list from Airlift's GitHub repository, so a failure is nearly
+    // always the connection. Say what to do, not just what broke.
     private static string ReasonAdvice(string reason) =>
-        reason.Contains("rate limit", StringComparison.OrdinalIgnoreCase) || reason.Contains("paused", StringComparison.OrdinalIgnoreCase)
-            ? "GitHub limits how often an app may ask about releases without signing in, and Airlift asks once per repository. Wait for the time below, then check again. Everything Airlift already knew is still shown, but it may be out of date."
-            : "Airlift kept whatever it already knew about these repositories. Their versions may be out of date until a check succeeds.";
+        "Airlift reads one release list published on GitHub and could not refresh it. Everything Airlift already knew is still shown, but versions may be out of date. Check your connection, then check again.";
     private Control BuildSidebar()
     {
         var grid = new Grid { RowDefinitions = new RowDefinitions("Auto,*,Auto"), Margin = new Thickness(0, 0, 0, 15) };
@@ -239,7 +237,7 @@ public sealed partial class MainWindow : Window
             case "Sources": BuildSources(content); break;
             case "Settings": BuildSettings(content); break;
         }
-        content.Children.Add(Ui.Separator()); content.Children.Add(Ui.Between(Ui.MutedText($"●  {_manager.Apps.Count} apps  ·  GitHub Releases", 10), Ui.MutedText("A little lift for your everyday.  ↗", 10)));
+        content.Children.Add(Ui.Separator()); content.Children.Add(Ui.Between(Ui.MutedText($"●  {_manager.VisibleApps.Count} apps  ·  GitHub Releases", 10), Ui.MutedText("A little lift for your everyday.  ↗", 10)));
         _body.Content = content;
     }
     private Control Hero()
@@ -255,7 +253,8 @@ public sealed partial class MainWindow : Window
             var orbit = new Ellipse { Width = diameter, Height = diameter, Stroke = Themes.Brush(p => p.HeroOrbit), StrokeThickness = 1 }; Canvas.SetLeft(orbit, 215 - diameter / 2); Canvas.SetTop(orbit, 165 - diameter / 2); art.Children.Add(orbit);
         }
         var mark = Brand.Mark(120); mark.RenderTransform = new RotateTransform(-9); Canvas.SetLeft(mark, 155); Canvas.SetTop(mark, 102); art.Children.Add(mark);
-        foreach (var (app, x, y) in new[] { (_manager.Apps[0], 92d, 40d), (_manager.Apps[2], 318d, 72d), (_manager.Apps[4], 96d, 230d) })
+        var featured = _manager.VisibleApps.Count >= 5 ? _manager.VisibleApps : _manager.Apps;
+        foreach (var (app, x, y) in new[] { (featured[0], 92d, 40d), (featured[2], 318d, 72d), (featured[4], 96d, 230d) })
         { var icon = Ui.Icon(app, 57); Canvas.SetLeft(icon, x); Canvas.SetTop(icon, y); art.Children.Add(icon); }
         var star = Ui.Text("✦", 27, p => p.AccentStar); Canvas.SetLeft(star, 344); Canvas.SetTop(star, 242); art.Children.Add(star);
         var hero = Ui.Card(grid, 0);
@@ -270,9 +269,9 @@ public sealed partial class MainWindow : Window
             content.Children.Add(Ui.Card(Ui.Between(Ui.Stack(6, Ui.Text($"{updateCount} app update{(updateCount == 1 ? "" : "s")} available", 16, p => p.Accent, FontWeight.SemiBold), Ui.MutedText("New releases are ready for your installed apps. Review what’s changed.", 11)), Ui.Button("Review updates →", () => Navigate("Updates"), "primary")), 18, p => p.CardAccent));
         if (_page == "Discover" && string.IsNullOrWhiteSpace(_query))
         {
-            content.Children.Add(Hero()); content.Children.Add(Ui.Between(Ui.MutedText($"◇  {_manager.Apps.Count} independent apps     ·     Your setup, your control     ·     Made by Fezcode", 11), Ui.Button("Meet your source  ↗", () => Navigate("Sources"), "link")));
+            content.Children.Add(Hero()); content.Children.Add(Ui.Between(Ui.MutedText($"◇  {_manager.VisibleApps.Count} independent apps     ·     Your setup, your control     ·     Made by Fezcode", 11), Ui.Button("Meet your source  ↗", () => Navigate("Sources"), "link")));
         }
-        var visible = _manager.Apps.Where(a => (_category == "All apps" || a.Category == _category) && $"{a.Name} {a.Description} {a.Category}".Contains(_query, StringComparison.OrdinalIgnoreCase));
+        var visible = _manager.VisibleApps.Where(a => (_category == "All apps" || a.Category == _category) && $"{a.Name} {a.Description} {a.Category}".Contains(_query, StringComparison.OrdinalIgnoreCase));
         if (_page == "My library") visible = visible.Where(a => _manager.Installed(a) != null);
         if (_page == "Updates") visible = visible.Where(_manager.HasUpdate);
         var matching = visible.ToList();
@@ -281,7 +280,7 @@ public sealed partial class MainWindow : Window
         var apps = hiding ? matching.Where(a => _manager.Installed(a) == null).ToList() : matching;
         if (_page == "Updates" && !_checking && !_initializing)
         {
-            var missing = _manager.Apps.Count(a => _manager.Installed(a) != null && !_manager.Preferences(a).Pinned && (_manager.Release(a)?.Release == null || _manager.Release(a)?.Error != null));
+            var missing = _manager.Apps.Count(a => _manager.Installed(a) != null && !_manager.Preferences(a).Pinned && !_manager.IsUnavailable(a) && (_manager.Release(a)?.Release == null || _manager.Release(a)?.Error != null));
             if (missing > 0) content.Children.Add(Ui.Card(Ui.Between(Ui.Stack(5, Ui.Text($"{missing} installed apps couldn’t be checked", 14), Ui.MutedText("Their repositories have no available release data or returned an error.", 11)), Ui.Button("See sources →", () => Navigate("Sources"), "link")), 16));
         }
         var controls = Ui.Row(7);
@@ -303,7 +302,7 @@ public sealed partial class MainWindow : Window
         {
             var installed = _manager.Apps.Where(a => _manager.Installed(a) != null).ToList();
             var eligible = installed.Where(a => !_manager.Preferences(a).Pinned).ToList();
-            var unknown = eligible.Count(a => _manager.Release(a)?.Release == null || _manager.Release(a)?.Error != null);
+            var unknown = eligible.Count(a => !_manager.IsUnavailable(a) && _manager.Release(a)?.Release == null || _manager.Release(a)?.Error != null);
             var pinned = installed.Count - eligible.Count;
             var title = _initializing || _checking ? "Checking for updates…" : updateCount > 0 ? "No updates match these filters." : installed.Count == 0 ? "No installed apps found yet." : unknown > 0 ? "Some updates couldn’t be checked." : eligible.Count == 0 ? "Your installed versions are pinned." : "You’re all caught up.";
             if (title == "You’re all caught up." && _manager.SelfUpdate.HasUpdate) title = "Your other apps are up to date.";

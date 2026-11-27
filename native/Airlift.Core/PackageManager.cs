@@ -26,6 +26,10 @@ public sealed class PackageManager : IDisposable
     public AppPreferences Preferences(CatalogApp app) => Store.Get<AppPreferences>("preferences", app.Id) ?? new();
     public void SetPreferences(CatalogApp app, AppPreferences preferences) { Store.Put("preferences", app.Id, preferences); Changed?.Invoke(); }
     public ReleaseCache? Release(CatalogApp app) => Store.Get<ReleaseCache>("releases", app.Id + (Preferences(app).IncludePrerelease ? ":preview" : ":stable"));
+    /// <summary>The release index lists no public repository for this app (private or missing).</summary>
+    public bool IsUnavailable(CatalogApp app) => Release(app)?.Unavailable == true;
+    /// <summary>The catalog as people should see it: apps without a public repository stay hidden unless already installed.</summary>
+    public IReadOnlyList<CatalogApp> VisibleApps => Apps.Where(a => !IsUnavailable(a) || Installed(a) != null).ToList();
     public ReleaseHistoryPage? CachedHistory(CatalogApp app, int page = 1) => Store.Get<ReleaseHistoryPage>("release-history", $"{app.Id}:{page}");
     public Task<ReleaseHistoryPage> GetReleaseHistoryAsync(CatalogApp app, int page = 1, bool force = false, CancellationToken ct = default) => _github.GetHistoryAsync(app, page, force, ct);
     public InstalledApp? Installed(CatalogApp app) => Store.Get<InstalledApp>("installed", app.Id);
@@ -34,7 +38,8 @@ public sealed class PackageManager : IDisposable
     public bool IsBusy(CatalogApp app) => _queuedApps.ContainsKey(app.Id);
     public bool HasActiveOperations => !_queuedApps.IsEmpty;
     public bool HasUpdate(CatalogApp app) => !Preferences(app).Pinned && Installed(app) is { } installed && Release(app)?.Release is { } release && SemVersion.IsNewer(release.Version, installed.Version);
-    public PackagePlan Plan(CatalogApp app) => PackageResolver.Resolve(app, Release(app)?.Release ?? throw new InvalidOperationException("Check GitHub releases first."), HostPlatform.Os, HostPlatform.Arch);
+    public PackagePlan Plan(CatalogApp app) => PackageResolver.Resolve(app, Release(app)?.Release ?? throw new InvalidOperationException(IsUnavailable(app) ? NotPublic : "Check GitHub releases first."), HostPlatform.Os, HostPlatform.Arch);
+    public const string NotPublic = "This app is not publicly available yet.";
     public bool RefreshInventory()
     {
         // Reconciliation and installer completion share the same cross-process
@@ -111,7 +116,7 @@ public sealed class PackageManager : IDisposable
             if (action == "update" && Preferences(app).Pinned) throw new InvalidOperationException("Unpin this version before updating.");
             if (action == "update" && _provider.FindInstalled(app) == null) throw new InvalidOperationException("This app is no longer installed. Use Install to open its setup wizard.");
             var cache = await _github.GetReleaseAsync(app, Preferences(app).IncludePrerelease, false, cancel.Token);
-            if (cache.Release == null) throw new InvalidOperationException(cache.Error ?? "No published release.");
+            if (cache.Release == null) throw new InvalidOperationException(cache.Unavailable ? NotPublic : cache.Error ?? "No published release.");
             var plan = PackageResolver.Resolve(app, cache.Release, HostPlatform.Os, HostPlatform.Arch); op = op with { Version = plan.Release.Version };
             if (silentUpdate && (plan.Os != "windows" || plan.Format != "forge-exe")) throw new NotSupportedException("Silent updates require a Windows Forge installer.");
             if (action != "download" && plan.Asset.Sha256 == null && !allowUnverified) throw new InvalidOperationException("GitHub did not publish a SHA-256 digest. Review and explicitly allow this unverified download before installation.");
@@ -121,8 +126,8 @@ public sealed class PackageManager : IDisposable
             Report("Verifying", 100, "Validating the package", file); cancel.Token.ThrowIfCancellationRequested();
             if (plan.Format == "forge-exe") await Task.Run(() => ForgeInspector.Verify(file, plan), cancel.Token);
             cancel.Token.ThrowIfCancellationRequested();
-            if (action == "download") { Report("Succeeded", 100, plan.Asset.Sha256 == null ? "Downloaded; no publisher digest available" : "Download complete · SHA-256 verified", file); return; }
-            Report("Installing", 100, silentUpdate ? "Updating silently in the existing installation folder…" : plan.Format == "forge-exe" ? "Complete the Forge setup window. Airlift is waiting for its result." : "Installing the managed application", file);
+            if (action == "download") { Report("Succeeded", 100, plan.Asset.Sha256 == null ? "Downloaded; no publisher digest available" : "Download complete Â· SHA-256 verified", file); return; }
+            Report("Installing", 100, silentUpdate ? "Updating silently in the existing installation folderâ€¦" : plan.Format == "forge-exe" ? "Complete the Forge setup window. Airlift is waiting for its result." : "Installing the managed application", file);
             var result = silentUpdate
                 ? await _provider.UpdateSilentlyAsync(plan, file, CancellationToken.None)
                 : await _provider.InstallAsync(plan, file, CancellationToken.None);

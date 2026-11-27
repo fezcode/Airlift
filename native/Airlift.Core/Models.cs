@@ -11,7 +11,10 @@ public sealed record CatalogDocument(List<CatalogApp> Apps);
 public sealed record ReleaseAsset(long Id, string Name, long Size, string Url, string? Sha256);
 public sealed record AppRelease(string Tag, string Version, string Url, string Notes, DateTimeOffset Published,
     bool Prerelease, List<ReleaseAsset> Assets);
-public sealed record ReleaseCache(AppRelease? Release, string? ETag, DateTimeOffset CheckedAt, string? Error);
+/// <summary>One app's channel, derived from the release index. Unavailable: the index lists no public repository for it.</summary>
+public sealed record ReleaseCache(AppRelease? Release, string? ETag, DateTimeOffset CheckedAt, string? Error, bool Unavailable = false);
+/// <summary>The last release.json Airlift fetched, kept verbatim so every app's channel is derived from the same copy.</summary>
+public sealed record ReleaseIndexCache(string? Json, string? ETag, DateTimeOffset CheckedAt, string? Error);
 public sealed record ReleaseHistoryPage(List<AppRelease> Releases, bool HasMore, string? ETag, DateTimeOffset CheckedAt, string? Error);
 public sealed record InstalledApp(string AppId, string Version, string Directory, string Provider, string? Executable = null, bool Machine = false);
 public sealed record AppPreferences(bool Pinned = false, bool IncludePrerelease = false);

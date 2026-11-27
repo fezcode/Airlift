@@ -127,7 +127,8 @@ steps in order and stop/report any failure before proceeding:
   Quote arguments containing spaces and keep background build processes hidden.
 - Scope build cleanup and process shutdown to this repository's `dist`
   output; preserve other installations, release installers, and unrelated files.
-- There is no CI. Airlift is built and released from this machine, so
+- There is no build CI. (The only GitHub Action is the release index; see
+  "Release index and app notifications".) Airlift is built and released from this machine, so
   `./build.ps1 -Test -Publish` is the only gate before a release and its tests
   must pass. That gate covers the host runtime alone: `win-x64` builds are the
   only ones exercised, so a change touching `linux-x64` or `osx-arm64` has to be
@@ -177,6 +178,48 @@ These flows are adapted from clockt's `AGENTS.md`.
 - Measure app cards using their actual available panel width. Do not derive card
   widths from window dimensions; scrollbars, borders and padding can force an
   unintended wrap. Keep resize/filter coverage in the native layout tests.
+
+## Release index and app notifications
+
+Airlift learns every app's releases, its own included, from **one file**:
+`release.json` at the root of this repository, read from
+`https://raw.githubusercontent.com/fezcode/Airlift/main/release.json`. The desktop
+app and CLI never call the GitHub API per repository. Don't edit `release.json` by
+hand. The `Release index` workflow (`.github/workflows/release-index.yml`) owns it:
+it runs `scripts/release-index.mjs`, which rebuilds every entry from GitHub and commits
+only when something changed.
+
+- **Triggers.** A catalog app's release is published, unpublished, edited or deleted
+  (the app notifies Airlift), Airlift's own release events, a push that changes the
+  catalog or the builder, the manual "Run workflow" button, and a daily safety-net run.
+- **Private or missing repositories** are written as `"available": false`. Airlift
+  hides them from Discover, Collections and Sources and never reports them as errors.
+  An installed copy stays in My library as "not publicly available". Once a repository
+  goes public, the next run lists it automatically.
+- **Every catalog app repository needs both of these.** Without them its releases reach
+  Airlift only through the daily run:
+  1. **The `AIRLIFT_DISPATCH_TOKEN` secret.** Store it with `scripts/set-notify-token.ps1`.
+     It is the fine-grained token `airlift-notify`: only `fezcode/Airlift`,
+     *Contents: Read and write*. Run the script in a real terminal, because it reads the
+     token without echo, checks it against `fezcode/Airlift` and stores it in each
+     repository.
+  2. **The `.github/workflows/airlift.yml` workflow.** Add it with
+     `scripts/install-notify-workflow.ps1`, which commits `scripts/airlift-notify.yml`
+     through the GitHub API and skips repositories that are already current. GitHub runs
+     a release workflow from the tagged commit, so `git pull` in the app's local copy
+     before tagging its next release.
+- **When an app joins the catalog** (`catalog:sync`), run both scripts for it:
+  `.\scripts\set-notify-token.ps1 -Repository fezcode/<repo>`, then
+  `.\scripts\install-notify-workflow.ps1 -Repository fezcode/<repo>`. Never paste the
+  token into chat, a file or a command line.
+- **When the token expires,** create a new one with the same settings and run
+  `.\scripts\set-notify-token.ps1` for all repositories. Until then the daily run keeps
+  the index at most a day behind.
+- **Run the builder locally** with `node scripts/release-index.mjs`. Leave
+  `GITHUB_TOKEN` unset: a personal `gh` token can read private repositories and would
+  list apps the workflow cannot. Its tests run with `npm test`.
+- **For desktop testing,** `AIRLIFT_RELEASE_INDEX` may point at a local `release.json`,
+  which is read instead of the published one.
 
 ## Catalog icon maintenance
 

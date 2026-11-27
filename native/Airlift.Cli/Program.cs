@@ -39,8 +39,8 @@ try
     {
         if (command == "refresh") await manager.CheckReleasesAsync(true);
         manager.RefreshInventory();
-        foreach (var app in manager.Apps.Where(a => command != "search" || $"{a.Name} {a.Description}".Contains(value, StringComparison.OrdinalIgnoreCase)))
-            Console.WriteLine($"{app.Name,-15} installed: {manager.Installed(app)?.Version ?? "—",-12} release: {manager.Release(app)?.Release?.Tag ?? "—",-12} {manager.Release(app)?.Error}");
+        foreach (var app in manager.VisibleApps.Where(a => command != "search" || $"{a.Name} {a.Description}".Contains(value, StringComparison.OrdinalIgnoreCase)))
+            Console.WriteLine($"{app.Name,-15} installed: {manager.Installed(app)?.Version ?? "—",-12} release: {manager.Release(app)?.Release?.Tag ?? "—",-12} {(manager.IsUnavailable(app) ? "not publicly available" : manager.Release(app)?.Error)}");
         return 0;
     }
     if (command is "export" or "import")

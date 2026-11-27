@@ -1,0 +1,58 @@
+# Rebuilds release.json, the one file Airlift reads to learn every catalog app's releases.
+# Catalog apps notify this repository through .github/workflows/airlift.yml (repository_dispatch).
+# Every run rebuilds all entries, so a notification GitHub drops from the queue is still covered.
+name: Release index
+
+on:
+  repository_dispatch:
+    types: [app-release]
+  release:
+    types: [published, unpublished, edited, deleted]
+  push:
+    branches: [main]
+    paths: [src/data/catalog.json, scripts/release-index.mjs, .github/workflows/release-index.yml]
+  schedule:
+    - cron: '23 5 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: release-index
+  cancel-in-progress: false
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Rebuild release.json
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TRIGGER: ${{ github.event_name }}
+          NOTIFIED_BY: ${{ github.event.client_payload.repository }}
+        run: |
+          echo "Triggered by $TRIGGER ${NOTIFIED_BY:+from $NOTIFIED_BY}"
+          node scripts/release-index.mjs
+      - name: Commit changes
+        run: |
+          if git diff --quiet -- release.json && ! git ls-files --others --exclude-standard --error-unmatch release.json >/dev/null 2>&1; then
+            echo "release.json is unchanged."
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add release.json
+          git commit -m "Update release index"
+          for attempt in 1 2 3; do
+            git pull --rebase origin main && git push origin HEAD:main && exit 0
+            sleep 5
+          done
+          exit 1

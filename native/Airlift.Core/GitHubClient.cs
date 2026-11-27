@@ -1,14 +1,25 @@
 using System.Net;
-using System.Net.Http.Headers;
 using System.Text.Json;
 using System.Text.RegularExpressions;
 
 namespace Airlift.Core;
 
+/// <summary>
+/// Release data for every app comes from one file, release.json in Airlift's own repository, which the
+/// Release index workflow rebuilds whenever a catalog app's releases change. Airlift never asks each app's
+/// repository: one request per check, no API rate limit, and private repositories are simply listed as
+/// unavailable instead of failing. Releases keep GitHub's field names and are validated by
+/// <see cref="ParseRelease"/> exactly as if they came from the API.
+/// </summary>
 public sealed class GitHubClient(HttpClient http, StateStore store)
 {
-    private DateTimeOffset _blockedUntil;
+    public const string IndexUrl = "https://raw.githubusercontent.com/fezcode/Airlift/main/release.json";
+    /// <summary>Points at a local release.json instead of the published one (testing an index before it is pushed).</summary>
+    public const string IndexOverride = "AIRLIFT_RELEASE_INDEX";
+    private const int MaxIndexBytes = 8_000_000;
+    private static readonly TimeSpan Fresh = TimeSpan.FromHours(6), Retry = TimeSpan.FromMinutes(1);
     private readonly SemaphoreSlim _gate = new(1, 1);
+
     public static HttpClient CreateHttpClient()
     {
         var client = new HttpClient(new HttpClientHandler { AllowAutoRedirect = false }) { Timeout = TimeSpan.FromSeconds(45) };
@@ -27,6 +38,8 @@ public sealed class GitHubClient(HttpClient http, StateStore store)
             throw new InvalidDataException("Asset URL is outside its configured GitHub repository.");
         return uri;
     }
+    private static TimeSpan Age(DateTimeOffset checkedAt) => DateTimeOffset.UtcNow - checkedAt;
+
     public async Task<ReleaseCache> GetReleaseAsync(CatalogApp app, bool prerelease, bool force, CancellationToken ct = default)
     {
         var key = app.Id + (prerelease ? ":preview" : ":stable");
@@ -34,64 +47,14 @@ public sealed class GitHubClient(HttpClient http, StateStore store)
         try
         {
             var cached = store.Get<ReleaseCache>("releases", key);
-            if (cached != null && DateTimeOffset.UtcNow - cached.CheckedAt < (force || cached.Error != null ? TimeSpan.FromMinutes(1) : TimeSpan.FromHours(6))) return cached;
-            if (_blockedUntil > DateTimeOffset.UtcNow)
-            {
-                // Every view reads release state from the store, so a refused check has to be
-                // recorded there too. Returning the pause without saving it made a check that
-                // never happened look like a successful one over stale data. CheckedAt keeps the
-                // last real check's time, because nothing was checked here.
-                var paused = cached is null
-                    ? new ReleaseCache(null, null, DateTimeOffset.UtcNow, $"GitHub requests paused until {_blockedUntil.LocalDateTime:t}.")
-                    : cached with { Error = $"GitHub requests paused until {_blockedUntil.LocalDateTime:t}; showing cached data." };
-                store.Put("releases", key, paused); return paused;
-            }
-            var endpoint = $"https://api.github.com/repos/{ValidateRepository(app.Repository)}/releases" + (prerelease ? "?per_page=100" : "/latest");
-            using var request = new HttpRequestMessage(HttpMethod.Get, endpoint);
-            request.Headers.Accept.ParseAdd("application/vnd.github+json"); request.Headers.Add("X-GitHub-Api-Version", "2022-11-28");
-            if (cached?.ETag is { } etag) request.Headers.TryAddWithoutValidation("If-None-Match", etag);
-            try
-            {
-                using var response = await http.SendAsync(request, ct);
-                ReleaseCache next;
-                if (response.StatusCode == HttpStatusCode.NotModified && cached is not null) next = cached with { CheckedAt = DateTimeOffset.UtcNow, Error = null };
-                else if (response.StatusCode == HttpStatusCode.NotFound) next = new(null, null, DateTimeOffset.UtcNow, "No public release found for this channel.");
-                else
-                {
-                    if ((int)response.StatusCode is 403 or 429)
-                    {
-                        _blockedUntil = DateTimeOffset.UtcNow.AddHours(1);
-                        if (response.Headers.TryGetValues("X-RateLimit-Reset", out var reset) && long.TryParse(reset.FirstOrDefault(), out var unix)) _blockedUntil = DateTimeOffset.FromUnixTimeSeconds(unix);
-                        if (response.Headers.RetryAfter?.Delta is { } delay) _blockedUntil = DateTimeOffset.UtcNow.Add(delay);
-                        throw new HttpRequestException($"GitHub access/rate limit. Retry after {_blockedUntil.LocalDateTime:t}.");
-                    }
-                    response.EnsureSuccessStatusCode();
-                    var json = await response.Content.ReadAsStringAsync(ct);
-                    if (json.Length > 8_000_000) throw new InvalidDataException("Release metadata is too large.");
-                    using var document = JsonDocument.Parse(json);
-                    AppRelease release;
-                    if (prerelease)
-                    {
-                        var releases = document.RootElement.EnumerateArray().Where(x => !x.GetProperty("draft").GetBoolean())
-                            .Select(x => ParseRelease(x, app.Repository)).ToList();
-                        if (releases.Count == 0) throw new InvalidDataException("No published releases found.");
-                        releases.Sort((a, b) => SemVersion.Compare(b.Version, a.Version)); release = releases[0];
-                    }
-                    else { release = ParseRelease(document.RootElement, app.Repository); if (release.Prerelease) throw new InvalidDataException("Stable endpoint returned a prerelease."); }
-                    next = new(release, response.Headers.ETag?.ToString(), DateTimeOffset.UtcNow, null);
-                }
-                store.Put("releases", key, next); return next;
-            }
-            catch (Exception error) when (error is HttpRequestException or JsonException or InvalidDataException or TaskCanceledException or FormatException)
-            {
-                ct.ThrowIfCancellationRequested();
-                var next = new ReleaseCache(cached?.Release, cached?.ETag, DateTimeOffset.UtcNow, error.Message);
-                store.Put("releases", key, next); return next;
-            }
+            if (cached != null && Age(cached.CheckedAt) < (force || cached.Error != null ? Retry : Fresh)) return cached;
+            var next = Derive(app, prerelease, await LoadIndexAsync(force, ct), cached);
+            store.Put("releases", key, next); return next;
         }
         finally { _gate.Release(); }
     }
-    /// <summary>Browse public history independently of the install channel. Never follows a server-supplied next URL.</summary>
+
+    /// <summary>Browse public history independently of the install channel. The index holds every release Airlift shows, so there is one page.</summary>
     public async Task<ReleaseHistoryPage> GetHistoryAsync(CatalogApp app, int page = 1, bool force = false, CancellationToken ct = default)
     {
         if (page < 1) throw new ArgumentOutOfRangeException(nameof(page));
@@ -100,47 +63,111 @@ public sealed class GitHubClient(HttpClient http, StateStore store)
         try
         {
             var cached = store.Get<ReleaseHistoryPage>("release-history", key);
-            if (cached != null && DateTimeOffset.UtcNow - cached.CheckedAt < (force ? TimeSpan.FromMinutes(1) : TimeSpan.FromHours(6))) return cached;
-            if (_blockedUntil > DateTimeOffset.UtcNow)
-                return new(cached?.Releases ?? [], cached?.HasMore ?? false, cached?.ETag, cached?.CheckedAt ?? DateTimeOffset.MinValue, $"GitHub requests paused until {_blockedUntil.LocalDateTime:t}. Showing saved releases.");
-            using var request = new HttpRequestMessage(HttpMethod.Get, $"https://api.github.com/repos/{ValidateRepository(app.Repository)}/releases?per_page=20&page={page}");
-            request.Headers.Accept.ParseAdd("application/vnd.github+json"); request.Headers.Add("X-GitHub-Api-Version", "2022-11-28");
-            if (cached?.ETag is { } etag) request.Headers.TryAddWithoutValidation("If-None-Match", etag);
+            if (cached != null && cached.Error == null && Age(cached.CheckedAt) < (force ? Retry : Fresh)) return cached;
+            if (page > 1) return new([], false, null, DateTimeOffset.UtcNow, null);
+            var index = await LoadIndexAsync(force, ct);
+            // Keep successful data's timestamp, so an offline attempt cannot make stale releases appear current.
+            if (index.Json is null) return new(cached?.Releases ?? [], false, null, cached?.CheckedAt ?? DateTimeOffset.MinValue, index.Error);
             try
             {
-                using var response = await http.SendAsync(request, ct);
-                ReleaseHistoryPage next;
-                if (response.StatusCode == HttpStatusCode.NotModified && cached != null)
-                    next = cached with { CheckedAt = DateTimeOffset.UtcNow, Error = null };
-                else
-                {
-                    if ((int)response.StatusCode is 403 or 429)
-                    {
-                        _blockedUntil = DateTimeOffset.UtcNow.AddHours(1);
-                        if (response.Headers.TryGetValues("X-RateLimit-Reset", out var reset) && long.TryParse(reset.FirstOrDefault(), out var unix)) _blockedUntil = DateTimeOffset.FromUnixTimeSeconds(unix);
-                        if (response.Headers.RetryAfter?.Delta is { } delay) _blockedUntil = DateTimeOffset.UtcNow.Add(delay);
-                        throw new HttpRequestException($"GitHub access/rate limit. Retry after {_blockedUntil.LocalDateTime:t}.");
-                    }
-                    response.EnsureSuccessStatusCode();
-                    var json = await response.Content.ReadAsStringAsync(ct);
-                    if (json.Length > 8_000_000) throw new InvalidDataException("Release metadata is too large.");
-                    using var document = JsonDocument.Parse(json);
-                    var releases = document.RootElement.EnumerateArray().Where(x => !x.GetProperty("draft").GetBoolean())
-                        .Select(x => ParseRelease(x, app.Repository, allowUnversioned: true)).OrderByDescending(x => x.Published).ToList();
-                    var hasMore = response.Headers.TryGetValues("Link", out var links) && links.Any(link => link.Contains("rel=\"next\"", StringComparison.OrdinalIgnoreCase));
-                    next = new(releases, hasMore, response.Headers.ETag?.ToString(), DateTimeOffset.UtcNow, null);
-                }
+                var releases = ReadReleases(index.Json, app.Repository, out _).OrderByDescending(x => x.Published).ToList();
+                var next = new ReleaseHistoryPage(releases, false, null, DateTimeOffset.UtcNow, index.Error);
                 store.Put("release-history", key, next); return next;
             }
-            catch (Exception error) when (error is HttpRequestException or JsonException or InvalidDataException or TaskCanceledException or FormatException)
+            catch (Exception error) when (error is JsonException or InvalidDataException or KeyNotFoundException or InvalidOperationException)
             {
-                ct.ThrowIfCancellationRequested();
-                // Keep successful data's timestamp, so an offline attempt cannot make stale releases appear current.
-                return new(cached?.Releases ?? [], cached?.HasMore ?? false, cached?.ETag, cached?.CheckedAt ?? DateTimeOffset.MinValue, error.Message);
+                return new(cached?.Releases ?? [], false, null, cached?.CheckedAt ?? DateTimeOffset.MinValue, error.Message);
             }
         }
         finally { _gate.Release(); }
     }
+
+    private static ReleaseCache Derive(CatalogApp app, bool prerelease, ReleaseIndexCache index, ReleaseCache? cached)
+    {
+        var now = DateTimeOffset.UtcNow;
+        // Nothing to read: keep what was known and say why it could not be refreshed.
+        if (index.Json is null) return new(cached?.Release, null, now, index.Error ?? "Airlift's release list is unavailable.", cached?.Unavailable ?? false);
+        try
+        {
+            var releases = ReadReleases(index.Json, app.Repository, out var available);
+            if (!available) return new(null, null, now, null, Unavailable: true);
+            var candidates = releases.Where(r => SemVersion.TryNormalize(r.Version, out _) && (prerelease || !r.Prerelease)).ToList();
+            if (candidates.Count == 0) return new(null, null, now, "No public release found for this channel.");
+            candidates.Sort((a, b) => SemVersion.Compare(b.Version, a.Version));
+            return new(candidates[0], null, now, index.Error);
+        }
+        catch (Exception error) when (error is JsonException or InvalidDataException or KeyNotFoundException or InvalidOperationException or FormatException)
+        {
+            return new(cached?.Release, null, now, error.Message, cached?.Unavailable ?? false);
+        }
+    }
+
+    /// <summary>The app's releases from the index. A release that fails validation is left out rather than trusted.</summary>
+    private static List<AppRelease> ReadReleases(string json, string repository, out bool available)
+    {
+        using var document = JsonDocument.Parse(json);
+        JsonElement? entry = null;
+        foreach (var property in document.RootElement.GetProperty("apps").EnumerateObject())
+            if (property.Name.Equals(repository, StringComparison.OrdinalIgnoreCase)) { entry = property.Value; break; }
+        available = entry is { } found && found.TryGetProperty("available", out var flag) && flag.ValueKind == JsonValueKind.True;
+        var releases = new List<AppRelease>();
+        if (!available) return releases;
+        foreach (var item in entry!.Value.GetProperty("releases").EnumerateArray())
+        {
+            try { releases.Add(ParseRelease(item, repository, allowUnversioned: true)); }
+            catch (Exception error) when (error is InvalidDataException or KeyNotFoundException or InvalidOperationException or FormatException or UriFormatException) { }
+        }
+        return releases;
+    }
+
+    private static void ValidateIndex(string json)
+    {
+        using var document = JsonDocument.Parse(json);
+        var root = document.RootElement;
+        if (root.ValueKind != JsonValueKind.Object || !root.TryGetProperty("schema", out var schema) || schema.ValueKind != JsonValueKind.Number || schema.GetInt32() != 1
+            || !root.TryGetProperty("apps", out var apps) || apps.ValueKind != JsonValueKind.Object)
+            throw new InvalidDataException("Airlift's release list uses a format this version does not understand.");
+    }
+
+    private async Task<ReleaseIndexCache> LoadIndexAsync(bool force, CancellationToken ct)
+    {
+        var cached = store.Get<ReleaseIndexCache>("release-index", "main");
+        if (cached != null && Age(cached.CheckedAt) < (force || cached.Error != null ? Retry : Fresh)) return cached;
+        var now = DateTimeOffset.UtcNow;
+        ReleaseIndexCache next;
+        try
+        {
+            if (Environment.GetEnvironmentVariable(IndexOverride) is { Length: > 0 } local)
+            {
+                var text = await File.ReadAllTextAsync(local, ct); ValidateIndex(text);
+                next = new(text, null, now, null);
+            }
+            else
+            {
+                using var request = new HttpRequestMessage(HttpMethod.Get, IndexUrl);
+                if (cached?.Json != null && cached.ETag is { } etag) request.Headers.TryAddWithoutValidation("If-None-Match", etag);
+                using var response = await http.SendAsync(request, HttpCompletionOption.ResponseHeadersRead, ct);
+                if (response.StatusCode == HttpStatusCode.NotModified && cached?.Json != null) next = cached with { CheckedAt = now, Error = null };
+                else
+                {
+                    if (response.StatusCode == HttpStatusCode.NotFound) throw new InvalidDataException("Airlift's release list has not been published yet.");
+                    if (!response.IsSuccessStatusCode) throw new HttpRequestException($"Airlift's release list could not be loaded (HTTP {(int)response.StatusCode}).");
+                    if (response.Content.Headers.ContentLength > MaxIndexBytes) throw new InvalidDataException("Airlift's release list is too large.");
+                    var text = await response.Content.ReadAsStringAsync(ct);
+                    if (text.Length > MaxIndexBytes) throw new InvalidDataException("Airlift's release list is too large.");
+                    ValidateIndex(text);
+                    next = new(text, response.Headers.ETag?.ToString(), now, null);
+                }
+            }
+        }
+        catch (Exception error) when (error is HttpRequestException or JsonException or InvalidDataException or TaskCanceledException or IOException or UnauthorizedAccessException)
+        {
+            ct.ThrowIfCancellationRequested();
+            next = new(cached?.Json, cached?.ETag, now, cached?.Json != null ? $"{error.Message} Showing saved release data." : error.Message);
+        }
+        store.Put("release-index", "main", next); return next;
+    }
+
     public static AppRelease ParseRelease(JsonElement root, string repository, bool allowUnversioned = false)
     {
         if (root.GetProperty("draft").GetBoolean()) throw new InvalidDataException("Draft releases are not installable.");
@@ -167,4 +194,3 @@ public sealed class GitHubClient(HttpClient http, StateStore store)
         return new(tag, version, url.AbsoluteUri, root.TryGetProperty("body", out var body) ? body.GetString() ?? "" : "", root.GetProperty("published_at").GetDateTimeOffset(), root.GetProperty("prerelease").GetBoolean(), assets);
     }
 }
-

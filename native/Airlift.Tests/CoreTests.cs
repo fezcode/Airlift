@@ -24,7 +24,7 @@ public sealed class CoreTests
         var store = new StateStore(TestDirectory());
         store.Put("releases", App.Id + ":stable", new ReleaseCache(null, null, DateTimeOffset.UtcNow.AddMinutes(-2), "offline"));
         var requests = 0;
-        using var http = new HttpClient(new Handler(_ => { requests++; return new(HttpStatusCode.OK) { Content = new StringContent(ReleaseHistoryTests.ReleaseJson("v2.0.0")) }; }));
+        using var http = new HttpClient(new Handler(_ => { requests++; return ReleaseHistoryTests.IndexResponse(ReleaseHistoryTests.IndexJson(ReleaseHistoryTests.ReleaseJson("v2.0.0"))); }));
         var result = await new GitHubClient(http, store).GetReleaseAsync(App, false, false);
         Assert.Equal(1, requests); Assert.Null(result.Error); Assert.Equal("2.0.0", result.Release!.Version);
     }
@@ -97,11 +97,21 @@ public sealed class CoreTests
     [Fact] public async Task GitHubUsesCachedMetadataWithoutNetworkAndRevalidatesWithEtag()
     {
         var store = new StateStore(TestDirectory()); var release = Release([1]); var requests = 0;
-        store.Put("releases", App.Id + ":stable", new ReleaseCache(release, "\"abc\"", DateTimeOffset.UtcNow, null));
-        using var http = new HttpClient(new Handler(request => { requests++; Assert.Equal("\"abc\"", request.Headers.IfNoneMatch.Single().ToString()); return new(HttpStatusCode.NotModified); }));
+        store.Put("releases", App.Id + ":stable", new ReleaseCache(release, null, DateTimeOffset.UtcNow, null));
+        using var http = new HttpClient(new Handler(request =>
+        {
+            requests++; Assert.Equal(GitHubClient.IndexUrl, request.RequestUri!.AbsoluteUri);
+            if (requests == 1) return ReleaseHistoryTests.IndexResponse(ReleaseHistoryTests.IndexJson(ReleaseHistoryTests.ReleaseJson("v2.0.0")), "\"abc\"");
+            Assert.Equal("\"abc\"", request.Headers.IfNoneMatch.Single().ToString()); return new(HttpStatusCode.NotModified);
+        }));
         var client = new GitHubClient(http, store); Assert.Equal(release.Tag, (await client.GetReleaseAsync(App, false, false)).Release!.Tag); Assert.Equal(0, requests);
-        store.Put("releases", App.Id + ":stable", new ReleaseCache(release, "\"abc\"", DateTimeOffset.UtcNow.AddHours(-7), null));
-        Assert.Equal(release.Tag, (await client.GetReleaseAsync(App, false, true)).Release!.Tag); Assert.Equal(1, requests);
+        store.Put("releases", App.Id + ":stable", new ReleaseCache(release, null, DateTimeOffset.UtcNow.AddHours(-7), null));
+        Assert.Equal("v2.0.0", (await client.GetReleaseAsync(App, false, false)).Release!.Tag); Assert.Equal(1, requests);
+        var index = store.Get<ReleaseIndexCache>("release-index", "main")!;
+        store.Put("release-index", "main", index with { CheckedAt = DateTimeOffset.UtcNow.AddHours(-7) });
+        store.Put("releases", App.Id + ":stable", store.Get<ReleaseCache>("releases", App.Id + ":stable")! with { CheckedAt = DateTimeOffset.UtcNow.AddHours(-7) });
+        var revalidated = await client.GetReleaseAsync(App, false, true);
+        Assert.Equal(2, requests); Assert.Null(revalidated.Error); Assert.Equal("v2.0.0", revalidated.Release!.Tag);
     }
     [Theory] [InlineData("../outside")] [InlineData("/absolute")] [InlineData("folder/../../outside")] [InlineData("C:\\outside")]
     public void ArchivePathsStayWithinOwnedDirectory(string name) => Assert.Throws<InvalidDataException>(() => PathSafety.Child(TestDirectory(), name));

@@ -20,6 +20,26 @@ The native app includes real installed-app discovery, stable/prerelease channels
 
 Read the [native build, behavior and validation guide](native/README.md). The sections below describe only the original browser prototype.
 
+## How Airlift learns about releases
+
+Airlift reads one file, [`release.json`](release.json), which lists the recent releases of every catalog app and of Airlift itself. It never queries each app's repository, so GitHub's rate limits and private repositories no longer cause failed checks. The **Release index** GitHub Action rebuilds the file whenever an app's release changes, when the catalog changes, and once a day. Apps whose repository is private are hidden until it goes public.
+
+**Every catalog app repository needs two things** so its releases reach Airlift within minutes:
+
+1. **The `AIRLIFT_DISPATCH_TOKEN` secret.** It is a fine-grained token limited to `fezcode/Airlift` with *Contents: Read and write*. Store it in your own terminal:
+   ```powershell
+   .\scripts\set-notify-token.ps1                              # every catalog repository
+   .\scripts\set-notify-token.ps1 -Repository fezcode/NewApp   # one new repository
+   ```
+2. **The `.github/workflows/airlift.yml` workflow**, which notifies Airlift on each release:
+   ```powershell
+   .\scripts\install-notify-workflow.ps1 -DryRun                     # see what would change
+   .\scripts\install-notify-workflow.ps1 -Repository fezcode/NewApp  # add it to one repository
+   ```
+   Run `git pull` in the app's local copy before its next release tag. GitHub runs the workflow from the tagged commit.
+
+**When a new app joins the catalog, run both commands for its repository.** When the token expires, create a new one with the same settings and run `set-notify-token.ps1` again.
+
 ## Update Airlift
 
 Open **Settings → Check for Airlift updates**, or use Airlift's card on the **Updates** page. Startup and background checks also track stable releases from `fezcode/Airlift`. Available updates show the new version and Markdown release notes before you proceed.

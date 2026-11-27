@@ -45,7 +45,7 @@ public sealed partial class MainWindow
             button.Content = card; choices.Children.Add(button); Grid.SetColumn(button, number - 1);
         }
         content.Children.Add(choices);
-        var apps = _manager.Apps.Where(a => _collection == "The creative desk" ? a.Category is "Creative" or "Productivity" : _collection == "After hours" ? a.Category is "Media" or "Gaming" : a.Name is "clockt" or "Hisashi" or "Atelier" or "pidi").ToList();
+        var apps = _manager.VisibleApps.Where(a => _collection == "The creative desk" ? a.Category is "Creative" or "Productivity" : _collection == "After hours" ? a.Category is "Media" or "Gaming" : a.Name is "clockt" or "Hisashi" or "Atelier" or "pidi").ToList();
         content.Children.Add(Ui.Between(Ui.Text($"{apps.Count} apps in this collection", 17), Ui.AsyncButton("Download available apps  ↓", async () =>
         {
             var plans = new List<PackagePlan>(); foreach (var app in apps) { try { plans.Add(_manager.Plan(app)); } catch (Exception e) when (e is InvalidOperationException or NotSupportedException) { } }
@@ -58,12 +58,12 @@ public sealed partial class MainWindow
     }
     private void BuildSources(StackPanel content)
     {
-        content.Children.Add(Ui.Card(Ui.Between(Ui.Stack(8, Ui.Text("GitHub Releases", 21, weight: FontWeight.SemiBold), Ui.MutedText($"{_manager.Apps.Count} public repositories · No sign-in required", 12)), Ui.AsyncButton(_checking ? "Checking…" : "↻ Check releases", () => CheckReleases(true), enabled: !_checking))));
-        foreach (var app in _manager.Apps)
+        content.Children.Add(Ui.Card(Ui.Between(Ui.Stack(8, Ui.Text("GitHub Releases", 21, weight: FontWeight.SemiBold), Ui.MutedText($"{_manager.VisibleApps.Count} public repositories · No sign-in required", 12)), Ui.AsyncButton(_checking ? "Checking…" : "↻ Check releases", () => CheckReleases(true), enabled: !_checking))));
+        foreach (var app in _manager.VisibleApps)
         {
             var cache = _manager.Release(app); var release = cache?.Release; var preferences = _manager.Preferences(app);
             var metadata = Ui.Stack(9, Ui.AsyncButton(app.Repository + "  ↗", () => OpenUrl($"https://github.com/{app.Repository}/releases"), "link"),
-                Ui.MutedText(release == null ? cache?.Error ?? "Not checked yet" : $"{release.Tag}  ·  {release.Published.LocalDateTime:d}  ·  {(preferences.IncludePrerelease ? "Prereleases included" : "Stable channel")}", 11));
+                Ui.MutedText(release == null ? (cache?.Unavailable == true ? PackageManager.NotPublic : cache?.Error ?? "Not checked yet") : $"{release.Tag}  ·  {release.Published.LocalDateTime:d}  ·  {(preferences.IncludePrerelease ? "Prereleases included" : "Stable channel")}", 11));
             if (cache?.Error != null && release != null) metadata.Children.Add(Ui.MutedText("Cached release · " + cache.Error, 10));
             var card = Ui.Stack(14, Ui.Between(Ui.Row(13, Ui.Icon(app, 38), metadata), Ui.AsyncButton("Releases", () => Details(app, true))));
             if (release != null)
