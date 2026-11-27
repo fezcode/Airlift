@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "generated": "2026-11-27T19:55:57.089Z",
+  "generated": "2026-11-27T22:20:32.485Z",
   "apps": {
     "fezcode/Airlift": {
       "available": true,
@@ -1395,6 +1395,30 @@
           "prerelease": false,
           "draft": false,
           "assets": [
+            {
+              "id": 801854201,
+              "name": "Drops-0.1.1-linux-x64.tar.gz",
+              "size": 40610199,
+              "state": "uploaded",
+              "browser_download_url": "https://github.com/fezcode/drops-for-desktop/releases/download/v0.1.1/Drops-0.1.1-linux-x64.tar.gz",
+              "digest": "sha256:cf2c20adf2893f95cb7eefb04f92df510f16c579a98d001f11c4e63fdf2949c9"
+            },
+            {
+              "id": 801854190,
+              "name": "Drops-0.1.1-osx-arm64.dmg",
+              "size": 47906393,
+              "state": "uploaded",
+              "browser_download_url": "https://github.com/fezcode/drops-for-desktop/releases/download/v0.1.1/Drops-0.1.1-osx-arm64.dmg",
+              "digest": "sha256:dd8b4186019cd3652bac0419ea53b0603c8ebebb5beccb837432beddde631df1"
+            },
+            {
+              "id": 801854458,
+              "name": "Drops-0.1.1-osx-x64.dmg",
+              "size": 49383458,
+              "state": "uploaded",
+              "browser_download_url": "https://github.com/fezcode/drops-for-desktop/releases/download/v0.1.1/Drops-0.1.1-osx-x64.dmg",
+              "digest": "sha256:30661ceba12a11f92baa4632491c11e446bf633d01f9c4b8f30fec8e656c3bfd"
+            },
             {
               "id": 801851628,
               "name": "Drops-Setup-0.1.1.exe",
