@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "generated": "2026-11-27T11:00:58.141Z",
+  "generated": "2026-11-27T12:22:48.730Z",
   "apps": {
     "fezcode/Airlift": {
       "available": true,
@@ -703,12 +703,52 @@
           "draft": false,
           "assets": [
             {
+              "id": 800140888,
+              "name": "Descry-0.94.2-macos-arm64.zip",
+              "size": 4933539,
+              "state": "uploaded",
+              "browser_download_url": "https://github.com/fezcode/Descry/releases/download/v0.94.2/Descry-0.94.2-macos-arm64.zip",
+              "digest": "sha256:bb3ec6e77c91b3b74f11c6eb6f420498257bd898094791316ecc88df95bfca5b"
+            },
+            {
+              "id": 800140898,
+              "name": "Descry-0.94.2-windows-x64-portable.zip",
+              "size": 6687250,
+              "state": "uploaded",
+              "browser_download_url": "https://github.com/fezcode/Descry/releases/download/v0.94.2/Descry-0.94.2-windows-x64-portable.zip",
+              "digest": "sha256:abc91119cf96783d1a1dbfd058ec9942a9bcf2e3298ff249c3831e713360a6cd"
+            },
+            {
+              "id": 800140891,
+              "name": "Descry-0.94.2-x86_64.AppImage",
+              "size": 6121976,
+              "state": "uploaded",
+              "browser_download_url": "https://github.com/fezcode/Descry/releases/download/v0.94.2/Descry-0.94.2-x86_64.AppImage",
+              "digest": "sha256:19df116712e52fc2401d7622ae5caaa745982beddc070fb23c8ffc205e2ae732"
+            },
+            {
+              "id": 800140890,
+              "name": "Descry-0.94.2.dmg",
+              "size": 5416620,
+              "state": "uploaded",
+              "browser_download_url": "https://github.com/fezcode/Descry/releases/download/v0.94.2/Descry-0.94.2.dmg",
+              "digest": "sha256:2b24acdf9d000fb72954afb3a614583a75f1d36733ce378fd6036064170b3ec3"
+            },
+            {
               "id": 800135781,
               "name": "Descry-Setup-0.94.2.exe",
               "size": 23074427,
               "state": "uploaded",
               "browser_download_url": "https://github.com/fezcode/Descry/releases/download/v0.94.2/Descry-Setup-0.94.2.exe",
               "digest": "sha256:cde283599c55adb28300711f326e9aedaa1690ceb00066c82fb4c268824af3ae"
+            },
+            {
+              "id": 800141028,
+              "name": "SHA256SUMS.txt",
+              "size": 471,
+              "state": "uploaded",
+              "browser_download_url": "https://github.com/fezcode/Descry/releases/download/v0.94.2/SHA256SUMS.txt",
+              "digest": "sha256:0044256fb8f0bdb24f52c67b2dcab7c8fe465d2f39b674511da232d1227d8c59"
             }
           ]
         },
