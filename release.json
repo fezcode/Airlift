@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "generated": "2026-11-27T10:21:10.384Z",
+  "generated": "2026-11-27T11:00:58.141Z",
   "apps": {
     "fezcode/Airlift": {
       "available": true,
@@ -695,6 +695,24 @@
       "available": true,
       "releases": [
         {
+          "tag_name": "v0.94.2",
+          "html_url": "https://github.com/fezcode/Descry/releases/tag/v0.94.2",
+          "body": "## Changes\n\n- **New `show_about` command:** opens the About box from the command palette (Ctrl+Shift+P) or a key you bind.\n- **About box:** it now lists the image libraries (libpng / libjpeg) in its stack line. Its key hint reads \"Enter / Esc to close\" instead of a yes/no hint that made no sense with only an OK button.\n- **Link prompt:** it shows the whole URL, wrapped across lines. Long links used to be cut off at the dialog's edge. A link too long to show in full is no longer opened.\n- **Menu-bar integration:** the Hisashi menu-bar connection now checks only that Hisashi runs in your own Windows login session, which is the check it can reliably make.\n- **Release notifications:** Airlift is notified when a release is published.\n\nSee [v0.94.1](https://github.com/fezcode/Descry/releases/tag/v0.94.1) for the self-contained packages and the security hardening.\n\n## Downloads\n\n- `Descry-Setup-0.94.2.exe` — Windows installer\n- `Descry-0.94.2-windows-x64-portable.zip` — Windows portable\n- `Descry-0.94.2.dmg` / `Descry-0.94.2-macos-arm64.zip` — macOS (Apple silicon, macOS 15+)\n- `Descry-0.94.2-x86_64.AppImage` — Linux\n- `SHA256SUMS.txt` — checksums for all of the above\n\nCI adds the macOS, Linux and portable Windows builds and the checksums shortly after the release is published.\n",
+          "published_at": "2026-11-27T11:00:33Z",
+          "prerelease": false,
+          "draft": false,
+          "assets": [
+            {
+              "id": 800135781,
+              "name": "Descry-Setup-0.94.2.exe",
+              "size": 23074427,
+              "state": "uploaded",
+              "browser_download_url": "https://github.com/fezcode/Descry/releases/download/v0.94.2/Descry-Setup-0.94.2.exe",
+              "digest": "sha256:cde283599c55adb28300711f326e9aedaa1690ceb00066c82fb4c268824af3ae"
+            }
+          ]
+        },
+        {
           "tag_name": "v0.94.1",
           "html_url": "https://github.com/fezcode/Descry/releases/tag/v0.94.1",
           "body": "## Self-contained on every OS\n\n- **macOS:** fixes \"SDL3 not found\". Homebrew's SDL2 is now a thin layer that loads SDL3 at startup, and SDL3 was never packed into the app. `Descry.app` now carries every library it uses, and the build fails if anything points outside the bundle.\n- **All platforms:** before a release ships, CI launches each package on a clean machine: macOS with Homebrew hidden, Linux on a bare Debian 12, and Windows with nothing but Windows on PATH.\n\n## Security\n\nA full audit of the app, with every fix covered by tests:\n\n- **Links** open only for `http`, `https` and `mailto`, after a prompt that shows the whole target. They never pass through a shell. On Linux and macOS a crafted link could previously run commands.\n- **Network-path images** (`//host/share/x.png`) are no longer loaded. On Windows, simply viewing a note containing one could send your login hash to another machine.\n- **Remote image fetches** never send Windows credentials or cookies. Set `remote_images = false` in `settings.lua` to turn them off entirely.\n- **Hostile images and SVGs** can no longer hang, crash or exhaust Descry: an SVG dash pattern that looped forever, a quadratic text scan, giant declared image sizes, and unbounded text and font caches.\n- **Plugins** run confined:\n  - no processes, no native modules, no bytecode and no `debug` library;\n  - files only inside the open vault and the plugin folder.\n  - See [docs/plugins.md](https://github.com/fezcode/Descry/blob/main/docs/plugins.md#sandbox).\n- **Vault safety:** symlinks are followed only when they stay inside the vault, and a vault's old `.descry.state` file can only reopen that vault's own notes.\n- **HTML export** adds a strict Content-Security-Policy and drops `javascript:` links, so an exported page runs no script.\n- **Builds** gain a stack protector, `_FORTIFY_SOURCE`, and PIE with full RELRO on Linux. On Windows, run-time DLLs load only from the app folder and System32.\n- **Release pipeline:** actions are pinned by commit, the build token is read-only, linuxdeploy is pinned and checksummed, and releases now include `SHA256SUMS.txt`.\n\n## Fixes\n\n- Descry ignored SIGTERM, and with it logout or shutdown, while a dialog such as the first-run one was open. It now quits.\n- **Idle CPU:** Descry redrew the whole window 20 times a second even when nothing changed, and the sidebar drew every row of the vault. With a 3,000-note vault and a 22,000-line note open, idle CPU drops from about 26% of a core to about 5%.\n\n## Downloads\n\n- `Descry-Setup-0.94.1.exe` — Windows installer\n- `Descry-0.94.1-windows-x64-portable.zip` — Windows portable\n- `Descry-0.94.1.dmg` / `Descry-0.94.1-macos-arm64.zip` — macOS (Apple silicon, macOS 15+)\n- `Descry-0.94.1-x86_64.AppImage` — Linux\n- `SHA256SUMS.txt` — checksums for all of the above (`sha256sum -c SHA256SUMS.txt`)\n\nCI adds the macOS, Linux and portable Windows builds and the checksums shortly after the release is published.\n",
@@ -1321,24 +1339,6 @@
               "state": "uploaded",
               "browser_download_url": "https://github.com/fezcode/Descry/releases/download/v0.82.2/Descry-Setup-0.82.2.exe",
               "digest": "sha256:872c1ba9d0698dbc953cc02deb6056afc4f8038cdb083b1fc73dea89509992fe"
-            }
-          ]
-        },
-        {
-          "tag_name": "v0.82.1",
-          "html_url": "https://github.com/fezcode/Descry/releases/tag/v0.82.1",
-          "body": "Bug-fix release: non-ASCII paths and text, color emoji, stray state files, Retina text.\n\n**Fixes**\n- **No more `.descry.state` files in your vaults.** Per-vault UI state (collapsed folders, sidebar width, open tabs) now lives in one `.state` file in the app-data dir (`%APPDATA%\\fezcode\\Descry\\` / `~/Library/Application Support/fezcode/Descry/`). An existing `.descry.state` in a vault is imported on first open and removed.\n- **UTF-8 file and folder names on Windows.** Vault folders and notes with non-ASCII names (Türkçe, 日本語, …) showed as tofu in the sidebar and could not be opened; the app now runs with a UTF-8 active code page (Windows 10 1903+).\n- **Broader script coverage.** Added system fallback fonts for Latin-extended/Greek/Cyrillic/Arabic/Hebrew, Korean, Japanese and Indic scripts on Windows and macOS. Combining marks (e.g. macOS NFD filenames) now compose correctly.\n- **Color emoji everywhere, including the Outline.** Emoji were drawn from a monochrome symbol font and ZWJ/flag/keycap sequences fell apart into separate glyphs; the outline could also truncate a heading in the middle of an emoji. Emoji now render in color from Segoe UI Emoji / Apple Color Emoji / Noto Color Emoji, sequences shape as one glyph, and outline rows elide with `…` on character boundaries.\n- **Retina / HiDPI text alignment.** On 2x displays glyphs wobbled off the baseline and looked smeared because each glyph was rounded to whole logical points; glyphs are now placed on exact device pixels.\n\n**Commits**\n- 6db37cf v0.82.1: UTF-8 paths, color emoji, per-vault state in app-data dir, Retina text alignment\n",
-          "published_at": "2026-08-29T23:13:26Z",
-          "prerelease": false,
-          "draft": false,
-          "assets": [
-            {
-              "id": 535856711,
-              "name": "Descry-Setup-0.82.1.exe",
-              "size": 20863562,
-              "state": "uploaded",
-              "browser_download_url": "https://github.com/fezcode/Descry/releases/download/v0.82.1/Descry-Setup-0.82.1.exe",
-              "digest": "sha256:c136cc4612014a9dd65573ae241460a3504ea592b47563eb773a9fa2d41b99b9"
             }
           ]
         }
