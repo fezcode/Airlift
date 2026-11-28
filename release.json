@@ -1,10 +1,28 @@
 {
   "schema": 1,
-  "generated": "2026-11-28T09:03:54.020Z",
+  "generated": "2026-11-28T09:05:10.216Z",
   "apps": {
     "fezcode/Airlift": {
       "available": true,
       "releases": [
+        {
+          "tag_name": "v0.3.7",
+          "html_url": "https://github.com/fezcode/Airlift/releases/tag/v0.3.7",
+          "body": "## Airlift v0.3.7\n\n### ✨ One file for every release\n- Airlift now learns about every app's releases from a single index in its own repository instead of asking each app's GitHub repository. Checks are faster, never hit GitHub's rate limits, and no longer fail on private repositories.\n- Apps whose repository isn't public yet are hidden until they're published. If you already have one installed, it stays manageable.\n- App releases now reach Airlift within minutes of being published.\n\n### ✨ Texticle joins the catalog\n- A quiet text editor with folder workspaces, tabs, and search that finds things across every file as you type. Listed under Productivity.\n\n### ✨ Stagecraft joins the catalog\n- Turn a script into a polished demo video: Stagecraft drives the real app, records its window, and adds the zooms, cursor, captions and slides. Listed under Creative.\n\n### ✨ Fresh icons\n- Sixteen apps show their new artwork, matching what they ship today.",
+          "published_at": "2026-11-28T09:04:55Z",
+          "prerelease": false,
+          "draft": false,
+          "assets": [
+            {
+              "id": 803933579,
+              "name": "Airlift-Setup-0.3.7.exe",
+              "size": 93338683,
+              "state": "uploaded",
+              "browser_download_url": "https://github.com/fezcode/Airlift/releases/download/v0.3.7/Airlift-Setup-0.3.7.exe",
+              "digest": "sha256:fd4d9680f0e8346c6cbf1af504cb9ae8f3bb93fbb9676c6d3756e172bc973ff2"
+            }
+          ]
+        },
         {
           "tag_name": "v0.3.6",
           "html_url": "https://github.com/fezcode/Airlift/releases/tag/v0.3.6",
