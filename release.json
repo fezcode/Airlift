@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "generated": "2026-11-28T09:05:10.216Z",
+  "generated": "2026-11-28T09:05:31.701Z",
   "apps": {
     "fezcode/Airlift": {
       "available": true,
@@ -706,8 +706,369 @@
       "releases": []
     },
     "fezcode/Cogas": {
-      "available": false,
-      "releases": []
+      "available": true,
+      "releases": [
+        {
+          "tag_name": "v0.20.3",
+          "html_url": "https://github.com/fezcode/Cogas/releases/tag/v0.20.3",
+          "body": "## Cogas v0.20.3\n\n### Remember library filters\n\n- Restore platform, genre, installed-only, search and collection filters when Cogas starts.\n- Remember the library's sort order and grid, small-icon or list layout.\n- Keep saved genre selections while metadata loads, restore renamed collections by ID, and clear deleted collection filters.\n- Save changes immediately so they survive closing Cogas right after changing a filter.\n\n### Validation\n\n- All 458 tests passed in Release configuration, including 9 new regression tests for filter persistence and startup behavior.\n- Built the self-contained Windows x64 installer and verified that its version matches the published app.\n",
+          "published_at": "2026-10-29T15:49:51Z",
+          "prerelease": false,
+          "draft": false,
+          "assets": [
+            {
+              "id": 797953419,
+              "name": "Cogas-Setup-0.20.3.exe",
+              "size": 67833266,
+              "state": "uploaded",
+              "browser_download_url": "https://github.com/fezcode/Cogas/releases/download/v0.20.3/Cogas-Setup-0.20.3.exe",
+              "digest": "sha256:8d8856a8b90e4e39942fbaebc7ccaf3b6a5f56fe6fc892230bf070e9b5729b80"
+            }
+          ]
+        },
+        {
+          "tag_name": "v0.20.2",
+          "html_url": "https://github.com/fezcode/Cogas/releases/tag/v0.20.2",
+          "body": "## Cogas v0.20.2\r\n\r\n### Refreshed application icon\r\n\r\n- Apply the approved icon design with a transparent background and crisp sizes for Windows shortcuts and taskbars.\r\n- Keep executable and runtime artwork consistent, with the approved master and reproducible asset exporter in the repository.\r\n\r\n### Validation\r\n\r\n- Windows release build and required checks passed. The installer and payload contain all seven approved icon frames, with transparency preserved.\r\n",
+          "published_at": "2026-10-25T19:53:41Z",
+          "prerelease": false,
+          "draft": false,
+          "assets": [
+            {
+              "id": 675971836,
+              "name": "Cogas-Setup-0.20.2.exe",
+              "size": 81321993,
+              "state": "uploaded",
+              "browser_download_url": "https://github.com/fezcode/Cogas/releases/download/v0.20.2/Cogas-Setup-0.20.2.exe",
+              "digest": "sha256:41609a5f5b282289fd4cc57508470174cf0a7191793aa267e20fb970957e4943"
+            }
+          ]
+        },
+        {
+          "tag_name": "v0.20.1",
+          "html_url": "https://github.com/fezcode/Cogas/releases/tag/v0.20.1",
+          "body": "Controllers work in Big Picture now — and the Menu button takes you there.\n\n- **Controllers are actually read.** A bug meant Big Picture never read a controller at all: the first check for connected pads failed on every poll, quietly, so an Xbox controller (or any pad Windows sees as one) did nothing. It is fixed, and Cogas now tests its controller reading against the real thing.\n- **Start Big Picture from the couch.** With the Cogas window in front, press the controller's **☰ Menu** button to open Big Picture. Inside Big Picture, ☰ opens the focused game's details, like Y.\n- **Xbox button names by default.** Big Picture's hints now name an Xbox controller's buttons — Ⓐ Play · Ⓨ Details · LB / RB · Ⓧ Sort · Ⓑ Back — whichever look it wears. Prefer the symbols on a DualSense? Settings → Big Picture → **Controller buttons** → PlayStation shows ✕ ○ △ □ and L1 / R1 instead.\n\n## Install\n\nDownload **`Cogas-Setup-0.20.1.exe`** below and run it. Per-user install to `%LOCALAPPDATA%\\Programs\\Cogas`, no admin needed. Upgrading keeps your library, collections, play history, wishlist, custom cover art and settings — they live in `%APPDATA%\\fezcode\\cogas`.\n\n**Requirements:** Windows 10 or later, x64. Self-contained, no .NET install required.\n",
+          "published_at": "2026-10-16T19:29:01Z",
+          "prerelease": false,
+          "draft": false,
+          "assets": [
+            {
+              "id": 648375370,
+              "name": "Cogas-Setup-0.20.1.exe",
+              "size": 75504696,
+              "state": "uploaded",
+              "browser_download_url": "https://github.com/fezcode/Cogas/releases/download/v0.20.1/Cogas-Setup-0.20.1.exe",
+              "digest": "sha256:98327f094262979597a2ba63fd0089305edfc30242576c71348975d38246fd9b"
+            }
+          ]
+        },
+        {
+          "tag_name": "v0.20.0",
+          "html_url": "https://github.com/fezcode/Cogas/releases/tag/v0.20.0",
+          "body": "## Cogas v0.20.0\n\n### Launch straight into Big Picture\n- New `--big-picture` command-line flag: `Cogas.exe --big-picture` opens Big Picture as soon as the library has finished its first scan, through the same path as F11.\n- The library window starts minimised behind it; closing Big Picture leaves the normal Cogas window ready to use.\n- If the scan fails, the library window is shown instead so the error stays visible.\n- Cogas has no single-instance handling, so the flag applies to the copy it starts, not to one already running.\n\n### Command-line help\n- `-h` / `--help` prints usage, including `--big-picture`, and exits.\n- `-v` / `--version` prints the version and exits.\n- Output goes to the console Cogas was started from, or to redirected output.",
+          "published_at": "2026-10-14T15:35:51Z",
+          "prerelease": false,
+          "draft": false,
+          "assets": [
+            {
+              "id": 640816349,
+              "name": "Cogas-Setup-0.20.0.exe",
+              "size": 75498943,
+              "state": "uploaded",
+              "browser_download_url": "https://github.com/fezcode/Cogas/releases/download/v0.20.0/Cogas-Setup-0.20.0.exe",
+              "digest": "sha256:fa10164660a62706f874ede83bf4778a160b5dbeb612332f83402584a7fce344"
+            }
+          ]
+        },
+        {
+          "tag_name": "v0.19.1",
+          "html_url": "https://github.com/fezcode/Cogas/releases/tag/v0.19.1",
+          "body": "Fixes for Big Picture's PlayStation 3 and Xbox 360 looks.\n\n- **The PlayStation 3 list is laid out properly.** Games could pile on top of each other and over the focused one. They now sit where the XMB puts them: the focused game large and lit under the bar, the rest running down the screen, the ones you've passed stacked above the bar.\n- **The mouse no longer sends the list racing.** In the PlayStation 3 and Xbox 360 looks, pointing at a game used to select it, which moved the list under the pointer and selected the next game, and the next. Now you click a game to select it and click it again to play, the way a console's list works. The wheel moves one game per notch, and a touchpad no longer counts every tiny movement as a full step.\n- **Sorting starts at the top.** Changing the order used to keep the same game selected, so A to Z could open at \"78 of 83\" and look as if nothing had sorted. Each new order now starts from its first game.\n- **Each store has its own icon on the PlayStation 3 bar**, and Recently played has a clock, in place of the same shop icon for every store.\n- **Cleaner screens.** No giant faded game icon behind the PlayStation 3 wave; the key hints there are readable again; and in the Xbox 360 look, notices and the now-playing pill no longer sit on top of the folded blades.\n\n## Install\n\nDownload **`Cogas-Setup-0.19.1.exe`** below and run it. Per-user install to `%LOCALAPPDATA%\\Programs\\Cogas`, no admin needed. Upgrading keeps your library, collections, play history, wishlist, custom cover art and settings — they live in `%APPDATA%\\fezcode\\cogas`.\n\n**Requirements:** Windows 10 or later, x64. Self-contained, no .NET install required.\n",
+          "published_at": "2026-10-05T18:38:47Z",
+          "prerelease": false,
+          "draft": false,
+          "assets": [
+            {
+              "id": 613373063,
+              "name": "Cogas-Setup-0.19.1.exe",
+              "size": 75492786,
+              "state": "uploaded",
+              "browser_download_url": "https://github.com/fezcode/Cogas/releases/download/v0.19.1/Cogas-Setup-0.19.1.exe",
+              "digest": "sha256:68220d49762ec2b6b1db87e27769e349d138bde48b8e6aa3fc13533b3ccdc5c7"
+            }
+          ]
+        },
+        {
+          "tag_name": "v0.19.0",
+          "html_url": "https://github.com/fezcode/Cogas/releases/tag/v0.19.0",
+          "body": "Big Picture now comes in three looks, and a new Storage page shows where your disk space went.\n\n- **Choose how Big Picture looks.** Settings has a new Big Picture card with a sketch of each look. Pick one and Big Picture wears it the next time it opens.\n  - **PlayStation** — the PS5 home screen Big Picture already had, now with ✕ ○ △ □ in their PlayStation colours when a controller is connected.\n  - **Xbox 360** — the 2005 dashboard, the Blades. Each shelf is a glossy green blade; the others fold away either side, named up their edge, and Left / Right (or LB / RB) slides from one to the next. Inside the open blade your games are a list with the chosen one on a white bar, and a pane beside it shows the game's art, logo, play history and Play. Behind it all, the dashboard's dark backdrop with its green orb.\n  - **PlayStation 3** — the XMB. The background takes the month's colour, brighter at midday and deeper at night, with the wave drifting slowly across it and the focused game's background art faint behind. Shelves are a bar of icons across the top; your games run down through it, the focused one large and lit, the ones you've passed stacked above the bar. Game icons use Steam's wide header art.\n- **Details on the list looks.** In the Xbox 360 and PlayStation 3 looks Up and Down browse the list, so a game's details open with Y (△), the ⓘ button, or Ctrl+I — which now works in the PlayStation look too.\n- **Storage.** A new page between Wishlist and Settings shows how much room your installed games take:\n  - **Drives** — a card for each drive with games on it, its bar split into games, everything else and free space.\n  - **Stores** — each store's total, its number of games and its share of all your game storage.\n  - **Games** — every installed game, largest first, grouped by disk, with buttons to open its folder, find it in the library, or hand its uninstall to its store (which asks before removing anything).\n  - Click a drive or a store to narrow the list; the two combine, so \"Steam on D:\" is one click each.\n- **Sizes for every store.** Steam, Epic and the Microsoft Store report how big a game is. For Ubisoft, Battle.net, GOG, EA and games you added yourself, Cogas adds up the install folder in the background, one game at a time, and remembers the answer for a week; **Re-measure** checks again. Those sizes now also show in the library and drive its Disk Size sort, which no longer pauses to measure folders itself.\n\n## Install\n\nDownload **`Cogas-Setup-0.19.0.exe`** below and run it. Per-user install to `%LOCALAPPDATA%\\Programs\\Cogas`, no admin needed. Upgrading keeps your library, collections, play history, wishlist, custom cover art and settings — they live in `%APPDATA%\\fezcode\\cogas`.\n\n**Requirements:** Windows 10 or later, x64. Self-contained, no .NET install required.\n",
+          "published_at": "2026-10-05T18:27:03Z",
+          "prerelease": false,
+          "draft": false,
+          "assets": [
+            {
+              "id": 613347110,
+              "name": "Cogas-Setup-0.19.0.exe",
+              "size": 75491965,
+              "state": "uploaded",
+              "browser_download_url": "https://github.com/fezcode/Cogas/releases/download/v0.19.0/Cogas-Setup-0.19.0.exe",
+              "digest": "sha256:e30162caf55e118fd63cf53918f18d7177fe3fe0e391381c0e3cb63b0091d6ee"
+            }
+          ]
+        },
+        {
+          "tag_name": "v0.18.0",
+          "html_url": "https://github.com/fezcode/Cogas/releases/tag/v0.18.0",
+          "body": "Cogas has a Big Picture mode: your library as a console's home screen, full screen, for playing from the couch.\n\n- **A home screen, not a grid.** Press **F11**, or the new **Big Picture** button in the library header, and the library fills the monitor Cogas is on. The focused game takes over the screen with its hero art under its logo, the store it launches from, when you last played and for how long, and a Play button. Your games sit in a row of tiles along the bottom; move along it and the backdrop cross-fades to each game. It opens on whatever game you had selected in the library, and it lays itself out for the screen's shape, so it reads the same on a laptop and a TV.\n- **Real artwork, from wherever it exists.** Steam games use Steam's own banners, logos and covers straight from Steam's local cache — the only place that knows where newer games keep theirs — and Steam's servers otherwise. Xbox and Microsoft Store games get Microsoft's full-screen key art. A game from any other store borrows the art of the matching game on Steam, when Steam sells it. An empty placeholder logo gives way to the game's name, and a dark wordmark gets a soft glow so it doesn't vanish into the backdrop.\n- **Games with no art anywhere get their own icon.** Battle.net, Ubisoft and hand-added games often have no cover from any store. They now show their executable's own icon, large and on its own colour, instead of initials — in Big Picture and in the normal library too: the grid, the list, the details pane, the Recently played sidebar and the profile page.\n- **Shelves.** Tabs across the top narrow the row to recently played, a single store, one of your collections, a genre, or the games you own but have not installed. On that last shelf the button reads **Install** and hands the game to its store. Click a tab again, or press Backspace, to go back to everything.\n- **Type to search.** Start typing anywhere and the row filters as you go, across installed and owned games. Case, punctuation and spacing don't matter — \"farcry\" finds Far Cry, \"watch dogs\" finds WATCH_DOGS2.\n- **Details.** Press Up, or the ⓘ beside Play, for everything Cogas knows about a game: store playtime and Cogas's own timing, when you last played, size on disk, critic and player scores, achievement progress, and Steam's description, developer and tags — with Play, Open folder and Store page right there.\n- **Sort.** Recent, A to Z or Most played, from the chip in the corner or Ctrl+S. Most played counts whichever is larger, the store's playtime or Cogas's own timing. Your choice is remembered.\n- **Controllers.** Any Xbox-style controller works — PlayStation pads too, through Steam Input or DS4Windows. D-pad or stick to browse, A to play, Y for details, X to sort, LB and RB to change shelf, B to go back. It only listens while Big Picture is in front, so playing a game with the same pad never moves anything behind it.\n- **Now playing.** Big Picture stays open behind a game it launches and shows what is running, with a clock that starts when the game itself appears. When you quit, it tells you how long the session was.\n\nAlso fixed: games whose names differ from Steam's only in spacing — WATCH_DOGS2 against Watch_Dogs® 2 — now match, so they pick up critic scores, genres and artwork after the next rescan.\n\n## Install\n\nDownload **`Cogas-Setup-0.18.0.exe`** below and run it. Per-user install to `%LOCALAPPDATA%\\Programs\\Cogas`, no admin needed. Upgrading keeps your library, collections, play history, wishlist, custom cover art and settings — they live in `%APPDATA%\\fezcode\\cogas`.\n\n**Requirements:** Windows 10 or later, x64. Self-contained, no .NET install required.\n",
+          "published_at": "2026-09-29T18:39:39Z",
+          "prerelease": false,
+          "draft": false,
+          "assets": [
+            {
+              "id": 598935111,
+              "name": "Cogas-Setup-0.18.0.exe",
+              "size": 75326035,
+              "state": "uploaded",
+              "browser_download_url": "https://github.com/fezcode/Cogas/releases/download/v0.18.0/Cogas-Setup-0.18.0.exe",
+              "digest": "sha256:894c781d9d77767437a122e0b3e3668e7235c37bad7a361b32ed8fdd9176a1d4"
+            }
+          ]
+        },
+        {
+          "tag_name": "v0.17.0",
+          "html_url": "https://github.com/fezcode/Cogas/releases/tag/v0.17.0",
+          "body": "Cogas no longer freezes while it starts, and it tells you what it is doing.\n\n- **The window appears before the work starts.** Cogas used to build everything before it drew anything: it opened the database and ran its migrations, constructed six view models, and handed the window a data context in its initializer — which forced the library view, the largest piece of layout in the project, to parse before a single pixel could appear. On a 928-game library that was around 1.7 seconds with nothing on screen. The launch is staged now. The window paints first and empty; the database opens on a background thread behind it, then the saved theme lands, then the interface is built. Measured on the same machine and the same library, the window appears in about 1.2 seconds instead of 1.6–2.4, and it never stops responding while the rest arrives.\n- **Scanning no longer holds the window hostage.** Finding your games was already off the main thread, but everything that followed was not: reading your cover overrides, building a view model for each of a thousand games, folding in play history, tracked sessions, launch options and collection membership. That was another half-second of an unresponsive window, right after it appeared. All of it happens on a worker thread now, and the main thread does nothing but hand the finished library to the grid.\n- **A game tile costs what it draws.** Every game used to build its platform gradient, its storefront dots and a line per storefront the moment it was scanned, whether or not you ever laid eyes on it. They are built the first time they are actually drawn instead — the grid shows a screenful at a time and the storefront lines belong to whichever game you have selected, so a large library is no longer paying for thousands of pieces of artwork nobody asked to see.\n- **Artwork and scores stopped blocking the library.** Fetching them began with a cache lookup per game, and those lookups were all being run on the main thread before the first one reached the network — about 2.8 seconds of a frozen window on a full library. They run on a worker now, so the library is usable the moment it is scanned and the artwork fills in behind it.\n- **Opening Cogas stopped measuring your cover cache.** The settings page worked out how much disk the cached artwork uses from its constructor, walking every file in the folder on the launch path, even though the page itself was not open. It measures when you open it, and measures on a worker thread. Settings are also read once into memory now rather than a separate database connection per value, dozens of times, during startup.\n- **A live status, in three places.** A startup screen with a progress bar while there is nothing to show yet; the sync pill in the title bar, whose dot is amber while Cogas is working and green when it has settled; and a progress row in the library header counting what is left — \"3 of 8 platforms\", then \"1221 of 1847 to fetch\". The startup screen steps aside as soon as your games are on screen rather than waiting for the network, and a later rescan reports through the pill and the header without covering the app again.\n- **Clear every filter at once.** The filter pill in the library header now carries a clear button whenever it is showing. It drops the collection, the platform, the genre, the installed-only toggle and whatever is in the search box together, since the pill is the one place that names all of them. Sort order is left alone — it changes what you see first, not what you can see.\n\nFor anyone diagnosing a slow launch: setting `COGAS_STARTUP_TRACE=1` writes a phase-by-phase timing log to `%APPDATA%\\fezcode\\cogas\\startup-trace.log`.\n\n## Install\n\nDownload **`Cogas-Setup-0.17.0.exe`** below and run it. Per-user install to `%LOCALAPPDATA%\\Programs\\Cogas`, no admin needed. Upgrading keeps your library, collections, play history, wishlist, custom cover art and settings — they live in `%APPDATA%\\fezcode\\cogas`.\n\n**Requirements:** Windows 10 or later, x64. Self-contained, no .NET install required.\n",
+          "published_at": "2026-09-20T01:16:36Z",
+          "prerelease": false,
+          "draft": false,
+          "assets": [
+            {
+              "id": 575831729,
+              "name": "Cogas-Setup-0.17.0.exe",
+              "size": 75125057,
+              "state": "uploaded",
+              "browser_download_url": "https://github.com/fezcode/Cogas/releases/download/v0.17.0/Cogas-Setup-0.17.0.exe",
+              "digest": "sha256:85ea80135c90875fc465f0efee159ca6e507a6dfba72ee6fb760315f211ade90"
+            }
+          ]
+        },
+        {
+          "tag_name": "v0.16.1",
+          "html_url": "https://github.com/fezcode/Cogas/releases/tag/v0.16.1",
+          "body": "Cogas has a new icon.\n\n- **A redrawn application icon, at every size Windows asks for.** The old `.ico` carried a single high-resolution bitmap, so the taskbar, the Alt-Tab switcher and the 16px title-bar corner all got it downscaled on the fly — thin spokes turned to mush at the small end. The mark is now an open C-shaped cog on the rounded plum tile, exported at 16, 24, 32, 48, 64, 128 and 256px and packed into one multi-resolution ICO, so each surface picks the size drawn for it. The installer, the shortcut, the window and the About panel all show the same artwork.\n- **The design is reproducible.** The shapes live in `tools/make-icon.py`, which regenerates the SVG, the PNG previews and the ICO from one scene description. Nothing about the icon is a binary nobody can rebuild — the generator is only needed when the design changes, since the exported assets are embedded in the app.\n\nNo behaviour changed in this release: the library, launching, collections, play history and the wishlist are exactly as they were in 0.16.0.\n\n## Install\n\nDownload **`Cogas-Setup-0.16.1.exe`** below and run it. Per-user install to `%LOCALAPPDATA%\\Programs\\Cogas`, no admin needed. Upgrading keeps your library, collections, play history, wishlist, custom cover art and settings — they live in `%APPDATA%\\fezcode\\cogas`.\n\n**Requirements:** Windows 10 or later, x64. Self-contained, no .NET install required.\n",
+          "published_at": "2026-09-19T21:10:55Z",
+          "prerelease": false,
+          "draft": false,
+          "assets": [
+            {
+              "id": 575496422,
+              "name": "Cogas-Setup-0.16.1.exe",
+              "size": 75079425,
+              "state": "uploaded",
+              "browser_download_url": "https://github.com/fezcode/Cogas/releases/download/v0.16.1/Cogas-Setup-0.16.1.exe",
+              "digest": "sha256:8734a33acf99d36cbc4040c94b39edc2318398c649f24551fc737f0f0ade9e18"
+            }
+          ]
+        },
+        {
+          "tag_name": "v0.16.0",
+          "html_url": "https://github.com/fezcode/Cogas/releases/tag/v0.16.0",
+          "body": "The sidebar is yours to size, and importing Steam categories stopped being slow.\n\n- **Drag the sidebar to the width you want.** It was a hardcoded 240px column with nothing to take hold of, so long collection names were clipped on one screen while another had room going spare. Take hold of the edge between the sidebar and the content canvas and pull. Held between 200 and 460px — narrower clips the nav labels, wider eats the grid the window exists to show — and the width is remembered between runs.\n- **Importing Steam categories skips what it has already filed.** The import never looked at the memberships it had written before, so every click re-issued an `INSERT` for all of them, each in its own transaction. On a library with four Steam collections that was 286 separate commits and 1424ms with the window frozen — and it fell entirely on the common case, since re-importing after filing one new game in Steam is what the button is for. The same library now takes 25ms for a first import of all 286 and 3ms for a repeat. The import itself is unchanged: still additive, still one-way, and it still never removes anything.\n- **The import says something true when nothing was added.** It used to report \"No Steam categories matched games in your library\" whether nothing matched or everything was already imported. It now tells those apart, and the second case reads \"Your Steam categories were already up to date here.\"\n\nRescan is deliberately untouched — it reloads collections from Cogas's own database as before, and Steam's categories are still imported only by the button in the COLLECTIONS header.\n\n## Install\n\nDownload **`Cogas-Setup-0.16.0.exe`** below and run it. Per-user install to `%LOCALAPPDATA%\\Programs\\Cogas`, no admin needed. Upgrading keeps your library, collections, play history, wishlist, custom cover art and settings — they live in `%APPDATA%\\fezcode\\cogas`.\n\n**Requirements:** Windows 10 or later, x64. Self-contained, no .NET install required.\n",
+          "published_at": "2026-09-19T00:55:13Z",
+          "prerelease": false,
+          "draft": false,
+          "assets": [
+            {
+              "id": 573786648,
+              "name": "Cogas-Setup-0.16.0.exe",
+              "size": 74942481,
+              "state": "uploaded",
+              "browser_download_url": "https://github.com/fezcode/Cogas/releases/download/v0.16.0/Cogas-Setup-0.16.0.exe",
+              "digest": "sha256:9dea049cb3ffffb042a43c86bc85a07555d8e10f8e3db05e0d8637d463ba67e0"
+            }
+          ]
+        },
+        {
+          "tag_name": "v0.15.2",
+          "html_url": "https://github.com/fezcode/Cogas/releases/tag/v0.15.2",
+          "body": "Installer rebuilt with [Forge](https://github.com/fezcode/Forge) 1.4.0 — no Cogas changes since 0.15.1.\n\n### Installing over an existing copy\n- Shortcuts are now written natively (IShellLinkW) and always built from scratch instead of rewriting the existing `.lnk`, so repair, reinstall and upgrade over an existing Cogas install complete cleanly. This is the path Forge 1.3.0 broke: `IPropertyStore.SetValue: Incorrect function` aborted the install mid-way and the rollback then removed the previous copy.\n- The install record (`installed_files.json`) is staged and committed only when the install succeeds, so a failed run can no longer corrupt the previous install's record.\n\n### Uninstall that never dead-ends\n- An `uninstall.json` plan records the install folder, shortcuts, registry keys and environment edits. If the install record is missing or partial, removal is reconstructed from the plan or the embedded manifest, and the Add/Remove Programs entry (both hives) and plan artifacts are always swept.\n- Stale Add/Remove Programs entries whose install folder is gone are cleaned up automatically and treated as a fresh install.\n- Per-user uninstalls no longer show a UAC prompt — `uninstall.exe` elevates only when the install actually needs it (per-machine / Program Files).\n\n### Housekeeping\n- The wizard's WebView2 profile lives in `%TEMP%\\forge-webview\\<app id>` and is removed on exit, instead of leaving a `%APPDATA%\\<Setup exe name>\\` folder behind for every version.\n- The install directory is validated (absolute, not a protected root), wizard errors are shown in a message box, and `--dir` works for GUI installs too.\n\nAn existing 0.15.1 install still carries the old uninstaller — install 0.15.2 over it and the new one takes over.\n",
+          "published_at": "2026-09-01T05:04:05Z",
+          "prerelease": false,
+          "draft": false,
+          "assets": [
+            {
+              "id": 539003351,
+              "name": "Cogas-Setup-0.15.2.exe",
+              "size": 74483006,
+              "state": "uploaded",
+              "browser_download_url": "https://github.com/fezcode/Cogas/releases/download/v0.15.2/Cogas-Setup-0.15.2.exe",
+              "digest": "sha256:e48da1e12207558f847ffc35394c5dcaac4da588a43d7e47462778201e476e53"
+            }
+          ]
+        },
+        {
+          "tag_name": "v0.15.1",
+          "html_url": "https://github.com/fezcode/Cogas/releases/tag/v0.15.1",
+          "body": "Fixes the Store tab reordering shipped in 0.15.0, which did not work at all.\n\n- **Store tabs drag into order again.** The drag handlers were declared on the segment buttons, and a button consumes the press before anything declared that way can see it — so the drag never started and the segments never moved. They are caught on the strip now, on the way down. A press that does not move still just selects the tab; one that does reorders without switching.\n\n## Install\n\nDownload **`Cogas-Setup-0.15.1.exe`** below and run it. Per-user install to `%LOCALAPPDATA%\\Programs\\Cogas`, no admin needed. Upgrading keeps your library, collections, play history, wishlist, custom cover art and settings — they live in `%APPDATA%\\fezcode\\cogas`.\n\n**Requirements:** Windows 10 or later, x64. Self-contained, no .NET install required.\n",
+          "published_at": "2026-08-31T03:29:46Z",
+          "prerelease": false,
+          "draft": false,
+          "assets": [
+            {
+              "id": 537389624,
+              "name": "Cogas-Setup-0.15.1.exe",
+              "size": 74458609,
+              "state": "uploaded",
+              "browser_download_url": "https://github.com/fezcode/Cogas/releases/download/v0.15.1/Cogas-Setup-0.15.1.exe",
+              "digest": "sha256:7515273831ebcf4f0cc6421e00a4bcc54e49f01875a336259077c761c18ddd38"
+            }
+          ]
+        },
+        {
+          "tag_name": "v0.15.0",
+          "html_url": "https://github.com/fezcode/Cogas/releases/tag/v0.15.0",
+          "body": "Games can be launched with parameters of your own, and the library says at a glance what you actually have on disk.\n\n- **Launch Options**, from any game's context menu or the details sidebar, hold the parameters a game starts with. Where a platform can carry them it does: a GOG or Battle.net game takes them as arguments, and Steam takes them through its own `steam://rungameid/id//args` form, so the overlay survives. Ubisoft, Epic, EA and Microsoft Store games launch through a link with no room for arguments, so for those Cogas runs the game's executable directly instead — it picks the right binary out of the install folder for you, and says which route it will use before you save. Parameters are kept per store, since the Steam copy and the GOG copy of a game start different ways. Clearing them puts the game back on its platform launcher; nothing is ever written into a game folder.\n- **Open Install Folder works for Ubisoft games again.** Ubisoft records its paths with forward slashes, which Explorer quietly ignores — so the folder was detected correctly and then never opened.\n- **Games not on disk are taped off.** Crime-scene tape across the cover, so a wall of tiles reads at a glance instead of by badge. Hover lifts it and the art underneath. Installed games answer with the ring around their tile, which is wider now and turns with three comets instead of two.\n- **Store tabs drag into the order you want.** The first one is the tab the Store page opens on, so living in the Steam tab no longer means landing on Deals every time.\n- **Cogas fills the Hisashi menubar**, if you run [Hisashi](https://github.com/fezcode/hisashi). Cogas, Library, View and Help menus with live checkmarks for where you are, over the hoswl pipe. Off with one switch in Settings, and entirely silent when Hisashi is not running.\n- **Uninstalling now offers to remove your library data.** It never touched `%APPDATA%\\fezcode\\cogas` before and never mentioned it either, which left an orphaned folder behind for anyone uninstalling for good. A plain uninstall still leaves it alone.\n\n## Install\n\nDownload **`Cogas-Setup-0.15.0.exe`** below and run it. Per-user install to `%LOCALAPPDATA%\\Programs\\Cogas`, no admin needed. Upgrading keeps your library, collections, play history, wishlist, custom cover art and settings — they live in `%APPDATA%\\fezcode\\cogas`.\n\n**Requirements:** Windows 10 or later, x64. Self-contained, no .NET install required.\n",
+          "published_at": "2026-08-31T03:15:16Z",
+          "prerelease": false,
+          "draft": false,
+          "assets": [
+            {
+              "id": 537376366,
+              "name": "Cogas-Setup-0.15.0.exe",
+              "size": 74442664,
+              "state": "uploaded",
+              "browser_download_url": "https://github.com/fezcode/Cogas/releases/download/v0.15.0/Cogas-Setup-0.15.0.exe",
+              "digest": "sha256:9824da643fe07dd89d2911c6ad005468b7b841df8d2438a83ba5dfc9133bf246"
+            }
+          ]
+        },
+        {
+          "tag_name": "v0.14.0",
+          "html_url": "https://github.com/fezcode/Cogas/releases/tag/v0.14.0",
+          "body": "Custom cover art now lives in the database. Until now a game added by hand kept its cover only as the path of the file you picked — delete that download and the tile went blank — and a cover set from the library drawer was copied to a folder but still recorded as just a path. Both routes now read the image into `cogas.db` itself, so a cover survives its original file being moved, renamed or deleted, and a copy of the database carries every custom cover with it. The file you picked is left exactly where it was.\n\n- **Add game** and **Set cover…** both store the image on the spot. Replacing a cover, resetting it, or removing a custom game drops the stored image too, so nothing accumulates.\n- **Existing covers move in on first start** — the copies an older release made, and the picked file of any custom game — as long as the file is still there. A cover whose file has already gone is left as it was rather than dropped (an unplugged drive is not a deleted one); pick it again once and it is permanent.\n- **Add game** now checks the cover before accepting it: it has to be a PNG, JPG, WEBP, BMP or GIF that actually exists, since a path that only looked right would store nothing. Cover art is capped at 24 MB.\n\n## Install\n\nDownload **`Cogas-Setup-0.14.0.exe`** below and run it. Per-user install to `%LOCALAPPDATA%\\Programs\\Cogas`, no admin needed. Upgrading keeps your library, collections, play history, wishlist, custom cover art and settings — they live in `%APPDATA%\\fezcode\\cogas`.\n\n**Requirements:** Windows 10 or later, x64. Self-contained, no .NET install required.\n",
+          "published_at": "2026-08-28T19:20:15Z",
+          "prerelease": false,
+          "draft": false,
+          "assets": [
+            {
+              "id": 534244668,
+              "name": "Cogas-Setup-0.14.0.exe",
+              "size": 69288373,
+              "state": "uploaded",
+              "browser_download_url": "https://github.com/fezcode/Cogas/releases/download/v0.14.0/Cogas-Setup-0.14.0.exe",
+              "digest": "sha256:2a03c4fb2574421cde4ac0530d19d311e80d0c776dbb360e142e2e1ebfa2e2da"
+            }
+          ]
+        },
+        {
+          "tag_name": "v0.13.2",
+          "html_url": "https://github.com/fezcode/Cogas/releases/tag/v0.13.2",
+          "body": "The Steam store now knows what's already yours. Everywhere on the Steam tab — search results, the front-page shelves, tag browsing, and the jumps in from Deals and Wishlist — games you own carry a small green badge in the row: **INSTALLED** or **IN LIBRARY**. The store page shows the same verdict as a chip ahead of the price, and its button row becomes contextual:\n\n- **Installed** → a **Play** button that launches through Steam.\n- **Owned but not on disk** → an **Install** button that asks Steam to install it — Steam owns the dialog, the disk choice and the download, same as the library's own install action.\n- **Not owned** → nothing pretends otherwise: the price chip and the usual Open on Steam / Open in browser buttons. (An \"add to cart\" was considered and dropped — Steam has no cart API, and a button that only opens a web page would be wearing a costume.)\n\nOwnership comes from the live library, so cloud-synced purchases count as owned. Rows are stamped when they're created; a game installed mid-session shows its new standing after the next library rescan.\n\n## Install\n\nDownload **`Cogas-Setup-0.13.2.exe`** below and run it. Per-user install to `%LOCALAPPDATA%\\Programs\\Cogas`, no admin needed. Upgrading keeps your library, collections, play history, wishlist, custom cover art and settings — they live in `%APPDATA%\\fezcode\\cogas`.\n\n**Requirements:** Windows 10 or later, x64. Self-contained, no .NET install required.\n",
+          "published_at": "2026-08-27T23:41:12Z",
+          "prerelease": false,
+          "draft": false,
+          "assets": [
+            {
+              "id": 533008311,
+              "name": "Cogas-Setup-0.13.2.exe",
+              "size": 69283401,
+              "state": "uploaded",
+              "browser_download_url": "https://github.com/fezcode/Cogas/releases/download/v0.13.2/Cogas-Setup-0.13.2.exe",
+              "digest": "sha256:62858d9a5b1e2b685711dc7e42bdcf8a09b4c5bd684da7548e41dad7b2b85a8a"
+            }
+          ]
+        },
+        {
+          "tag_name": "v0.13.1",
+          "html_url": "https://github.com/fezcode/Cogas/releases/tag/v0.13.1",
+          "body": "A small polish pass on the new pill search bar, guided by actually watching the caret under a magnifier:\n\n- **The placeholder and typed text now sit vertically centred** in the search bar; the input used to top-align its content against the pills beside it.\n- **The text caret got room, and its own colour.** Avalonia centres the caret bar on the insertion point, so flush against a thin letter — an *l*, say — it swallowed the glyph and read as sitting *on* the last character. A whisper of letter spacing gives it clearance, and the caret now wears the theme's accent colour, so it can never be mistaken for a letter again.\n\n## Install\n\nDownload **`Cogas-Setup-0.13.1.exe`** below and run it. Per-user install to `%LOCALAPPDATA%\\Programs\\Cogas`, no admin needed. Upgrading keeps your library, collections, play history, wishlist, custom cover art and settings — they live in `%APPDATA%\\fezcode\\cogas`.\n\n**Requirements:** Windows 10 or later, x64. Self-contained, no .NET install required.\n",
+          "published_at": "2026-08-27T23:30:34Z",
+          "prerelease": false,
+          "draft": false,
+          "assets": [
+            {
+              "id": 533000320,
+              "name": "Cogas-Setup-0.13.1.exe",
+              "size": 69275594,
+              "state": "uploaded",
+              "browser_download_url": "https://github.com/fezcode/Cogas/releases/download/v0.13.1/Cogas-Setup-0.13.1.exe",
+              "digest": "sha256:30fa4192ea27d43f48c6b55cc999b457e8d0bc4089475a5fbb5c15f309a9d72a"
+            }
+          ]
+        },
+        {
+          "tag_name": "v0.13.0",
+          "html_url": "https://github.com/fezcode/Cogas/releases/tag/v0.13.0",
+          "body": "The Steam search box learned to speak in filters. Type a title as always — or add `tag:fps`, and the moment you start the token a completion list opens over Steam's ~450 browseable tags. A completed tag becomes a **pill in the search bar**: it sits beside your text with its own ×, backspace in an empty box eats the most recent one, and every pill narrows the browse. Pills and text combine — `borderlands` plus a `Looter Shooter` pill really does search both at once — and multi-word tags need no quotes: after a `tag:`, words keep joining the token only while the phrase still matches a real tag. Tag chips on store pages and in the library drawer land in the same bar, as pills.\n\nThe library got three of the features from the roadmap:\n\n- **A genre filter** next to the platform dropdown, built from the store metadata Cogas already caches — it fills in when the scores finish loading.\n- **\"Owned on 2+ Stores\"** in the platform dropdown: every game the scanner merged across storefronts, in one view.\n- **Cogas now times your sessions.** Launching a game starts a watcher that waits for the game's own process (by the executables in its install folder) and times it until it exits — riding out launcher hand-offs, ignoring crash handlers and redist installers, and discarding blips under a minute. The result shows in the drawer as its own figure, \"3.5 h in Cogas\": it covers every store, including the ones that report no playtime at all, but only counts launches made from Cogas.\n\nAnd the Deals tab now shows **Epic's weekly giveaway** — what's free right now with its end date, and what's announced next — keyless and account-free, careful to exclude the plain discounts that share Epic's promotion machinery. Cards open the Epic page in the browser. (GOG was considered and skipped: its giveaways have no stable feed, and its \"free\" catalogue is free-to-play clutter, which is not what free means.)\n\n## Install\n\nDownload **`Cogas-Setup-0.13.0.exe`** below and run it. Per-user install to `%LOCALAPPDATA%\\Programs\\Cogas`, no admin needed. Upgrading keeps your library, collections, play history, wishlist, custom cover art and settings — they live in `%APPDATA%\\fezcode\\cogas`.\n\n**Requirements:** Windows 10 or later, x64. Self-contained, no .NET install required.\n",
+          "published_at": "2026-08-27T22:53:55Z",
+          "prerelease": false,
+          "draft": false,
+          "assets": [
+            {
+              "id": 532970678,
+              "name": "Cogas-Setup-0.13.0.exe",
+              "size": 69275485,
+              "state": "uploaded",
+              "browser_download_url": "https://github.com/fezcode/Cogas/releases/download/v0.13.0/Cogas-Setup-0.13.0.exe",
+              "digest": "sha256:1cffba62acf7f8d90a2515b71ac53efbb02e7e798b47b3c119bef62a3de01206"
+            }
+          ]
+        },
+        {
+          "tag_name": "v0.12.0",
+          "html_url": "https://github.com/fezcode/Cogas/releases/tag/v0.12.0",
+          "body": "The library now tells you what's on disk before you read a single badge:\n\n- **Games you don't have installed sit muted** — the art dimmed under a gray veil that lifts with a quick fade when you hover, so the cover blooms back to full color under the pointer.\n- **Installed games carry a quiet green edge and glow** at rest, and on hover a sparkle — a gold comet with a green tail — travels around the card's frame. The animation only runs on the tile you're hovering: the grid holds perfectly still otherwise, and an idle library costs nothing to render.\n\nThe Steam wishlist section in the Wishlist tab now actually appears. Two faults stacked: Steam's wishlist service rejects anything that is not a numeric SteamID64, and a vanity name in Settings — which the player card happily resolves — was being passed through unresolved; the failure was then swallowed silently and never retried. The wishlist load now resolves vanity names the same way the card does, retries on the next visit after a failure, and reports its problems in the status bar — including telling you when Steam's own privacy setting (\"Game details\" must be Public) is what's hiding your list.\n\nTwo smaller changes with the same theme — the app being upfront with you:\n\n- **Clicking a recently played game in the sidebar no longer launches it.** One stray click starting a game was a hazard; the click now opens the game's details in the Library, with Launch one deliberate click away.\n- **Settings now says where your keys live**: each API key card states that the key is stored only on this PC, in Cogas's local database, encrypted with your Windows account (DPAPI), and sent nowhere except to its own service. This was always true — now it's written down where you type the key.\n\n## Install\n\nDownload **`Cogas-Setup-0.12.0.exe`** below and run it. Per-user install to `%LOCALAPPDATA%\\Programs\\Cogas`, no admin needed. Upgrading keeps your library, collections, play history, wishlist, custom cover art and settings — they live in `%APPDATA%\\fezcode\\cogas`.\n\n**Requirements:** Windows 10 or later, x64. Self-contained, no .NET install required.\n",
+          "published_at": "2026-08-27T22:18:12Z",
+          "prerelease": false,
+          "draft": false,
+          "assets": [
+            {
+              "id": 532939600,
+              "name": "Cogas-Setup-0.12.0.exe",
+              "size": 69191904,
+              "state": "uploaded",
+              "browser_download_url": "https://github.com/fezcode/Cogas/releases/download/v0.12.0/Cogas-Setup-0.12.0.exe",
+              "digest": "sha256:98d51fcf417e0a656d5c6cd9d733b79363cf17814b4680f5cfe72677d642f2e4"
+            }
+          ]
+        },
+        {
+          "tag_name": "v0.11.0",
+          "html_url": "https://github.com/fezcode/Cogas/releases/tag/v0.11.0",
+          "body": "Steam stopped being just a search box. This release pulls the parts of Steam worth seeing into the tabs where they belong:\n\n- **The Steam tab now opens onto Steam's front page** — top sellers, specials and new releases fill the results column the moment the tab opens, each row tagged with the shelf it came from. Pick one for its page, or search as before. One keyless request, cached for an hour.\n- **The Deals tab grew a Steam Specials strip** — capsule cards with the price, the strikethrough original and the cut. It needs no key at all, so the tab has live deals in it even before an IsThereAnyDeal key is configured. Clicking a card opens the game's page on the Steam tab, inside Cogas.\n- **Your Steam wishlist appears in the Wishlist tab**, hand-ranked games first, then newest-added — with prices, discounts and release dates resolved through the store-page cache. Read-only on purpose: ranking and removing stay on Steam. Long wishlists show their first 40 and say so, to stay under Steam's storefront throttle on a cold cache; later sessions come from cache.\n- **Clicking your player card opens a native profile page** instead of a browser: avatar, name and level, four figures from the last scan — games on Steam, installed here, hours played, never started — and your most played and recently played lists. Built entirely from data Cogas already holds, so it opens instantly and costs no requests. \"Open on Steam\" is still there for the real thing.\n\nThe cover tiles' store badges now wear the platform's own color — Steam blue, GOG purple, Xbox green — with ink that flips light or dark to stay readable on each.\n\nAlso fixed: hovering the player card (and collection rows) could wash the sidebar out with a light hover under pale text. The culprit was Fluent's own pointer-over style winning by naming the template part our styles left anonymous; the sidebar's hover styles now name it too, so the dark hover always wins.\n\n## Install\n\nDownload **`Cogas-Setup-0.11.0.exe`** below and run it. Per-user install to `%LOCALAPPDATA%\\Programs\\Cogas`, no admin needed. Upgrading keeps your library, collections, play history, wishlist, custom cover art and settings — they live in `%APPDATA%\\fezcode\\cogas`.\n\n**Requirements:** Windows 10 or later, x64. Self-contained, no .NET install required.\n",
+          "published_at": "2026-08-27T22:03:45Z",
+          "prerelease": false,
+          "draft": false,
+          "assets": [
+            {
+              "id": 532925551,
+              "name": "Cogas-Setup-0.11.0.exe",
+              "size": 69183052,
+              "state": "uploaded",
+              "browser_download_url": "https://github.com/fezcode/Cogas/releases/download/v0.11.0/Cogas-Setup-0.11.0.exe",
+              "digest": "sha256:0aa29899b18b02d478b30377fc673f05a87802a0c2343f7ec615cada5df26871"
+            }
+          ]
+        },
+        {
+          "tag_name": "v0.10.0",
+          "html_url": "https://github.com/fezcode/Cogas/releases/tag/v0.10.0",
+          "body": "The Store page grew a second half: a **Steam tab** that searches Steam's storefront and shows the store page — screenshots, price and discount, review summary, developer and publisher, minimum requirements — without leaving Cogas. Prices and availability follow the country configured in Settings, and visited pages are cached for a day, so browsing back through results costs nothing.\n\nThe Library stopped making you pay for its size up front:\n\n- **Tiles now page in as you scroll.** The cover grids can't virtualize (a wrapping panel builds every tile it's given), so a ~900-game library used to build ~900 tiles the moment the page opened — that multi-second freeze is gone. Search and filtering got snappier for the same reason.\n- **Clicking a Steam game fills the drawer from its store page** — description, developer and publisher, and the category line (Single-player · Steam Achievements · Full controller support…). Fetched only when you open the game, same as achievements, and cached for a day. Only real numeric Steam appids are looked up, so a title-derived id can never fetch the wrong game's page.\n- **Every cover now carries a store badge** in its bottom-left corner — the platform's colour dot and name — so a mixed library reads at a glance in both grid sizes.\n\nAlso fixed: in the list view, the **Play** button on installed rows squeezed the store and status columns leftwards, so those rows looked out of line with the rest. The button's column is now reserved on every row.\n\n## Install\n\nDownload **`Cogas-Setup-0.10.0.exe`** below and run it. Per-user install to `%LOCALAPPDATA%\\Programs\\Cogas`, no admin needed. Upgrading keeps your library, collections, play history, wishlist, custom cover art and settings — they live in `%APPDATA%\\fezcode\\cogas`.\n\n**Requirements:** Windows 10 or later, x64. Self-contained, no .NET install required.\n",
+          "published_at": "2026-08-27T21:39:31Z",
+          "prerelease": false,
+          "draft": false,
+          "assets": [
+            {
+              "id": 532903224,
+              "name": "Cogas-Setup-0.10.0.exe",
+              "size": 69109158,
+              "state": "uploaded",
+              "browser_download_url": "https://github.com/fezcode/Cogas/releases/download/v0.10.0/Cogas-Setup-0.10.0.exe",
+              "digest": "sha256:5db4b69b11dc256bffdb24c3274ec2db0316f969e070481f49dfe7c8ad1665be"
+            }
+          ]
+        }
+      ]
     },
     "fezcode/Descry": {
       "available": true,
@@ -2652,8 +3013,117 @@
       ]
     },
     "fezcode/pidi": {
-      "available": false,
-      "releases": []
+      "available": true,
+      "releases": [
+        {
+          "tag_name": "v0.3.1",
+          "html_url": "https://github.com/fezcode/pidi/releases/tag/v0.3.1",
+          "body": "## pidi v0.3.1\r\n\r\n### Refreshed application icon\r\n\r\n- Apply the approved icon design with a transparent background and crisp sizes for Windows shortcuts and taskbars.\r\n- Keep executable and runtime artwork consistent, with the approved master and reproducible asset exporter in the repository.\r\n\r\n### Validation\r\n\r\n- Windows release build and required checks passed. The installer and payload contain all seven approved icon frames, with transparency preserved.\r\n\r\n### Included from 0.3.0\r\n\r\n- Tabs, page tones, saved reading positions, document properties, and search results are included from the current main branch.\r\n",
+          "published_at": "2026-10-25T19:48:02Z",
+          "prerelease": false,
+          "draft": false,
+          "assets": [
+            {
+              "id": 797956223,
+              "name": "pidi-Setup-0.3.1.exe",
+              "size": 21940516,
+              "state": "uploaded",
+              "browser_download_url": "https://github.com/fezcode/pidi/releases/download/v0.3.1/pidi-Setup-0.3.1.exe",
+              "digest": "sha256:cde683a1f02cb803013c7fc64fafb0c45e61609012f464f13947f8f8bc54f757"
+            }
+          ]
+        },
+        {
+          "tag_name": "v0.2.2",
+          "html_url": "https://github.com/fezcode/pidi/releases/tag/v0.2.2",
+          "body": "Installer rebuilt with [Forge](https://github.com/fezcode/Forge) 1.4.0 — no pidi changes since 0.2.1.\n\n### Installing over an existing copy\n- Shortcuts are now written natively (IShellLinkW) and always built from scratch instead of rewriting the existing `.lnk`, so repair, reinstall and upgrade over an existing pidi install complete cleanly. This is the path Forge 1.3.0 broke: `IPropertyStore.SetValue: Incorrect function` aborted the install mid-way and the rollback then removed the previous copy.\n- The install record (`installed_files.json`) is staged and committed only when the install succeeds, so a failed run can no longer corrupt the previous install's record.\n\n### Uninstall that never dead-ends\n- An `uninstall.json` plan records the install folder, shortcuts, registry keys and environment edits. If the install record is missing or partial, removal is reconstructed from the plan or the embedded manifest, and the Add/Remove Programs entry (both hives) and plan artifacts are always swept.\n- Stale Add/Remove Programs entries whose install folder is gone are cleaned up automatically and treated as a fresh install.\n- Per-user uninstalls no longer show a UAC prompt — `uninstall.exe` elevates only when the install actually needs it (per-machine / Program Files).\n\n### Housekeeping\n- The wizard's WebView2 profile lives in `%TEMP%\\forge-webview\\<app id>` and is removed on exit, instead of leaving a `%APPDATA%\\<Setup exe name>\\` folder behind for every version.\n- The install directory is validated (absolute, not a protected root), wizard errors are shown in a message box, and `--dir` works for GUI installs too.\n\nAn existing 0.2.1 install still carries the old uninstaller — install 0.2.2 over it and the new one takes over.\n",
+          "published_at": "2026-09-01T04:59:30Z",
+          "prerelease": false,
+          "draft": false,
+          "assets": [
+            {
+              "id": 538998112,
+              "name": "pidi-Setup-0.2.2.exe",
+              "size": 24492817,
+              "state": "uploaded",
+              "browser_download_url": "https://github.com/fezcode/pidi/releases/download/v0.2.2/pidi-Setup-0.2.2.exe",
+              "digest": "sha256:b2200e7d2577008641cfdc07bef948502616b18387a4f495612d7f2cbedd8664"
+            }
+          ]
+        },
+        {
+          "tag_name": "v0.2.1",
+          "html_url": "https://github.com/fezcode/pidi/releases/tag/v0.2.1",
+          "body": "Installer rebuilt with Forge 1.2.0 — no app changes since 0.2.0.\n\n- Uninstaller: the Add/Remove Programs entry is removed from both registry hives, empty registry keys the installer created are pruned, shortcuts and emptied folders go with them, and a new **Also remove my settings and data** option purges `%APPDATA%\\fezcode\\pidi` (config.ini) on request.\n- An existing 0.2.0 install still carries the old uninstaller — install 0.2.1 over it and the new one takes over.",
+          "published_at": "2026-08-30T04:17:19Z",
+          "prerelease": false,
+          "draft": false,
+          "assets": [
+            {
+              "id": 536133518,
+              "name": "pidi-Setup-0.2.1.exe",
+              "size": 24440294,
+              "state": "uploaded",
+              "browser_download_url": "https://github.com/fezcode/pidi/releases/download/v0.2.1/pidi-Setup-0.2.1.exe",
+              "digest": "sha256:a20023da25aca9675c1cfc1992b8cdeb9c756c30bd43b407bf6e95700235848b"
+            }
+          ]
+        },
+        {
+          "tag_name": "v0.2.0",
+          "html_url": "https://github.com/fezcode/pidi/releases/tag/v0.2.0",
+          "body": "## Hisashi menubar\n\npidi now puts its menus into [Hisashi](https://github.com/fezcode/hisashi)'s macOS-style menubar over the **hoswl** protocol, the same way Descry does. While Hisashi is running and pidi is the foreground app, the bar shows:\n\n| Menu | Items |\n|---|---|\n| **File** | Open…, Open Recent ▸, Close, Save, Save As…, Print…, Quit |\n| **Edit** | Undo, Copy, Find…, Find Next, Find Previous |\n| **View** | Zoom In/Out, Actual Size, Fit Width ✓, Fit Page ✓, Single / Continuous / Two‑Up ✓, Rotate, Page Shadow ✓, Outline ✓, Thumbnails ✓, Full Screen ✓ |\n| **Go** | Previous / Next / First / Last Page, Go to Page… |\n| **Tools** | Select / Hand / Highlight / Pen / Note ✓, Settings… |\n| **Window** | Minimize, Maximize / Restore, Always on Top ✓ |\n\nCheckmarks follow pidi's live state; rows that need an open document grey out; Undo / Copy grey out when there is nothing to undo or copy. Shortcut hints match pidi's real keys.\n\nToggle it under Settings → **Hisashi menubar** (persisted as `hisashi_menubar=1`, on by default). Without Hisashi it is a no-op — pidi just retries the pipe every 2 s.\n\n## Also\n\n- **Close** (`Ctrl+W`, File → Close) closes the document without quitting, with the unsaved-changes prompt.\n- The Settings panel shows the menubar's status (*connected* / *waiting for Hisashi* / *off*).\n- `--help` lists the new shortcut and the Hisashi integration.\n\nInstaller unchanged from 0.1.2 (icon, GUI-subsystem check).\n",
+          "published_at": "2026-08-29T23:14:06Z",
+          "prerelease": false,
+          "draft": false,
+          "assets": [
+            {
+              "id": 535857252,
+              "name": "pidi-Setup-0.2.0.exe",
+              "size": 19412486,
+              "state": "uploaded",
+              "browser_download_url": "https://github.com/fezcode/pidi/releases/download/v0.2.0/pidi-Setup-0.2.0.exe",
+              "digest": "sha256:e005d4c1d77db04e219f7eb5a0ee4604703c7cc8563272fc52e1212f88f396bc"
+            }
+          ]
+        },
+        {
+          "tag_name": "v0.1.2",
+          "html_url": "https://github.com/fezcode/pidi/releases/tag/v0.1.2",
+          "body": "## Installer icon\n\n`pidi-Setup-0.1.2.exe` now carries the pidi app icon (the gold document mark). The 0.1.1 installer shipped with **no icon resource at all**, so Explorer, the taskbar and the UAC prompt showed the generic executable glyph.\n\nSame mechanism as Timp: `forge.toml` declares `icon = \"assets/pidi.ico\"` under `[app]`, and Forge patches it into the Setup.exe and uses it for the **Settings → Apps** entry.\n\nAlso:\n- `installer.ps1` now verifies the built Setup.exe is a GUI-subsystem binary (no stray console window), as Timp's does.\n- README: config path corrected to `%APPDATA%\\fezcode\\pidi\\` (it moved there in 0.1.1).\n\nNo changes to pidi itself beyond the version bump.\n",
+          "published_at": "2026-08-29T19:28:55Z",
+          "prerelease": false,
+          "draft": false,
+          "assets": [
+            {
+              "id": 535632815,
+              "name": "pidi-Setup-0.1.2.exe",
+              "size": 19400222,
+              "state": "uploaded",
+              "browser_download_url": "https://github.com/fezcode/pidi/releases/download/v0.1.2/pidi-Setup-0.1.2.exe",
+              "digest": "sha256:5213f3d228cf357fdcee9671179fcfe7a98e3f909c6d0f4a075030299dcccfea"
+            }
+          ]
+        },
+        {
+          "tag_name": "v0.1.1",
+          "html_url": "https://github.com/fezcode/pidi/releases/tag/v0.1.1",
+          "body": "Settings move into the shared Fezcode tree.\n\n- `%APPDATA%\\pidi\\config.ini` → `%APPDATA%\\fezcode\\pidi\\config.ini`\n  (macOS `~/Library/Application Support/fezcode/pidi/`, other Unix `$XDG_CONFIG_HOME/fezcode/pidi/`).\n\n**No migration.** The old location is abandoned rather than read — copy `config.ini` across by hand to keep your settings.\n\nFirst release published to GitHub; the repo is private.",
+          "published_at": "2026-08-23T02:23:43Z",
+          "prerelease": false,
+          "draft": false,
+          "assets": [
+            {
+              "id": 525710776,
+              "name": "pidi-Setup-0.1.1.exe",
+              "size": 19386894,
+              "state": "uploaded",
+              "browser_download_url": "https://github.com/fezcode/pidi/releases/download/v0.1.1/pidi-Setup-0.1.1.exe",
+              "digest": "sha256:dccbea4a13448ea1c5db64c9f983837e2cdd5360acd8af10a6e4212277db5f9a"
+            }
+          ]
+        }
+      ]
     },
     "fezcode/Qemik": {
       "available": true,
