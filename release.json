@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "generated": "2026-11-27T23:05:14.400Z",
+  "generated": "2026-11-28T08:49:45.229Z",
   "apps": {
     "fezcode/Airlift": {
       "available": true,
@@ -2899,6 +2899,29 @@
               "state": "uploaded",
               "browser_download_url": "https://github.com/fezcode/Tarman/releases/download/v0.1.0/Tarman-Setup-0.1.0.exe",
               "digest": "sha256:b99fbfa3e6dd3678cde51be0b2b6447ac7cbf7f18e158904c48d2c93b98b02e8"
+            }
+          ]
+        }
+      ]
+    },
+    "fezcode/texticle": {
+      "available": true,
+      "releases": [
+        {
+          "tag_name": "v0.1.0",
+          "html_url": "https://github.com/fezcode/texticle/releases/tag/v0.1.0",
+          "body": "## Texticle v0.1.0\n\n### ✨ Folder workspaces\n\nOpen a folder and use Ctrl+P to jump to a file by name or path. Markdown headings appear in the outline as you write.\n\n### ✨ Find and replace\n\nSee the active match and its position in the document while typing in Find or Replace. Use Enter and Shift+Enter to move between matches.\n\n### ✨ A personal writing surface\n\nChoose an installed font, set the app color, adjust acrylic transparency, or press F11 for focus mode. The executable uses the same mark as the editor’s title bar.\n\n### Install on Windows x64\n\nDownload **Texticle-Setup-0.1.0.exe** and run it. The installer includes the .NET and Windows App SDK runtimes.\n",
+          "published_at": "2026-11-28T08:43:02Z",
+          "prerelease": false,
+          "draft": false,
+          "assets": [
+            {
+              "id": 803875802,
+              "name": "Texticle-Setup-0.1.0.exe",
+              "size": 91022929,
+              "state": "uploaded",
+              "browser_download_url": "https://github.com/fezcode/texticle/releases/download/v0.1.0/Texticle-Setup-0.1.0.exe",
+              "digest": "sha256:55a29ffcdee7d814eabb8d907cae2f9bab161b5cf64f3b84e11efe070d546c29"
             }
           ]
         }
