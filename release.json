@@ -1,10 +1,28 @@
 {
   "schema": 1,
-  "generated": "2026-11-28T09:05:31.701Z",
+  "generated": "2026-11-28T09:13:43.212Z",
   "apps": {
     "fezcode/Airlift": {
       "available": true,
       "releases": [
+        {
+          "tag_name": "v0.3.8",
+          "html_url": "https://github.com/fezcode/Airlift/releases/tag/v0.3.8",
+          "body": "## Airlift v0.3.8\n\n### ✨ Cogas joins the shelf\n- All your games, one library. Cogas is now public and listed under Gaming.\n\n### ✨ pidi joins the shelf\n- A fresh page. pidi is now public and listed under Productivity.",
+          "published_at": "2026-11-28T09:13:27Z",
+          "prerelease": false,
+          "draft": false,
+          "assets": [
+            {
+              "id": 803956166,
+              "name": "Airlift-Setup-0.3.8.exe",
+              "size": 93338701,
+              "state": "uploaded",
+              "browser_download_url": "https://github.com/fezcode/Airlift/releases/download/v0.3.8/Airlift-Setup-0.3.8.exe",
+              "digest": "sha256:73eadfe25f5e3e03cf1ddafda1fc6b172c501b2a5b37478c90f6c6709f2af5e6"
+            }
+          ]
+        },
         {
           "tag_name": "v0.3.7",
           "html_url": "https://github.com/fezcode/Airlift/releases/tag/v0.3.7",
