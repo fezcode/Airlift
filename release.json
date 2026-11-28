@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "generated": "2026-11-28T08:55:32.821Z",
+  "generated": "2026-11-28T09:03:54.020Z",
   "apps": {
     "fezcode/Airlift": {
       "available": true,
@@ -2930,6 +2930,24 @@
     "fezcode/texticle": {
       "available": true,
       "releases": [
+        {
+          "tag_name": "v0.1.3",
+          "html_url": "https://github.com/fezcode/texticle/releases/tag/v0.1.3",
+          "body": "## Texticle v0.1.3\n\n### ✨ A document icon for plain text\n\nText files associated with Texticle now have a folded-page icon in File Explorer. The artwork includes ten sizes, from 16 to 256 pixels.\n\nInstall **Texticle-Setup-0.1.3.exe** to upgrade. If Texticle already opens your `.txt` files, your existing association will use the new icon.\r\n",
+          "published_at": "2026-11-28T09:03:31Z",
+          "prerelease": false,
+          "draft": false,
+          "assets": [
+            {
+              "id": 803930541,
+              "name": "Texticle-Setup-0.1.3.exe",
+              "size": 91049313,
+              "state": "uploaded",
+              "browser_download_url": "https://github.com/fezcode/texticle/releases/download/v0.1.3/Texticle-Setup-0.1.3.exe",
+              "digest": "sha256:1e1a79913b4e2382a98505c8922e2889b99daa75b376164b7b643031048c2cb3"
+            }
+          ]
+        },
         {
           "tag_name": "v0.1.2",
           "html_url": "https://github.com/fezcode/texticle/releases/tag/v0.1.2",
