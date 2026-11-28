@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "generated": "2026-11-28T08:54:53.208Z",
+  "generated": "2026-11-28T08:55:32.821Z",
   "apps": {
     "fezcode/Airlift": {
       "available": true,
@@ -2804,6 +2804,29 @@
               "state": "uploaded",
               "browser_download_url": "https://github.com/fezcode/SirWordALot/releases/download/v0.1.0/SirWordALot-Setup-0.1.0.exe",
               "digest": "sha256:3bb13d8b3062061df1c96faae77f2ad015f54a9a9db7a734c538a5646e034130"
+            }
+          ]
+        }
+      ]
+    },
+    "fezcode/Stagecraft": {
+      "available": true,
+      "releases": [
+        {
+          "tag_name": "v0.1.1",
+          "html_url": "https://github.com/fezcode/Stagecraft/releases/tag/v0.1.1",
+          "body": "## Stagecraft v0.1.1\n\n### ✨ Punchier camera\n- `zoom punch <target> [scale] [hold <d>]` snaps in with a small overshoot, holds, then zooms back out by itself.\n- `zoom drift <scale> <dur>` is a slow Ken Burns push that runs while the script carries on.\n- `zoom pulse [scale] [dur] [at <target>]` is a quick bump that leaves the camera where it was.\n- `effect click-pulse [scale]` adds a bump on every click (drags excluded).\n\n### ✨ Key-point cards\n- New `slide cards` layout: two to four big, equal cards with an icon, optional label, headline and one line, stacked on portrait canvases.\n- Cards swoop in one after another with the new `swoop` entrance; `animate cards …` still overrides them.\n- New Studio template: **Key cards pitch**.\n\n### ✨ Particle slide backgrounds\n- `background particles warp | sparks | burst | constellation | comets`, alongside the original drift. `count` and `speed` scale every style.\n\n### ✨ More cursors\n- `arrow-dark`, `arrow-neon`, `arrow-sharp`, `halo`, `target`, `magnifier`, `pen` and `move`.\n\n### 🐛 Fixes\n- Studio: the minimize window button shows its icon again.\n- CLI: the run summary showed 42 s as \"~421s\"; it now reads \"~42.0s\".\n",
+          "published_at": "2026-11-15T19:05:11Z",
+          "prerelease": false,
+          "draft": false,
+          "assets": [
+            {
+              "id": 797958440,
+              "name": "Stagecraft-Setup-0.1.1.exe",
+              "size": 114715517,
+              "state": "uploaded",
+              "browser_download_url": "https://github.com/fezcode/Stagecraft/releases/download/v0.1.1/Stagecraft-Setup-0.1.1.exe",
+              "digest": "sha256:edbcad9ca8fbd497de36415f6c43eba88566966e43407179b1c6c6d07c44e1df"
             }
           ]
         }
