@@ -121,7 +121,7 @@ function Set-Versions([string] $root, [string] $target, [switch] $DryRun) {
     $forge        = [regex]::Replace($forge,  '(?m)^(version\s*=\s*")\d+(?:\.\d+)+(")',     "`${1}$target`${2}")
     $readme       = [regex]::Replace($readme, '(Airlift-Setup-)\d+\.\d+\.\d+(\.exe)',       "`${1}$target`${2}")
     $nativeReadme = [regex]::Replace($nativeReadme, '(Airlift-Setup-)\d+\.\d+\.\d+(\.exe)', "`${1}$target`${2}")
-    $nativeReadme = [regex]::Replace($nativeReadme, '(?m)^(#\s*Native Airlift\s+)\d+\.\d+\.\d+[ \t]*$', "`${1}$target")
+    $nativeReadme = [regex]::Replace($nativeReadme, '(?m)^(#\s*Native Airlift\s+)\d+\.\d+\.\d+(?=[ \t]*\r?$)', "`${1}$target")
 
     if (-not $DryRun) {
         $encoding = New-Object System.Text.UTF8Encoding($false)
