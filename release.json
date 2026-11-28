@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "generated": "2026-11-28T08:49:45.229Z",
+  "generated": "2026-11-28T08:54:53.208Z",
   "apps": {
     "fezcode/Airlift": {
       "available": true,
@@ -2907,6 +2907,24 @@
     "fezcode/texticle": {
       "available": true,
       "releases": [
+        {
+          "tag_name": "v0.1.2",
+          "html_url": "https://github.com/fezcode/texticle/releases/tag/v0.1.2",
+          "body": "## Texticle v0.1.2\n\n### ✨ Glass installer\n\nTexticle Setup now uses Forge’s Glass theme. Download **Texticle-Setup-0.1.2.exe** to install or upgrade on Windows x64.\n\n### ✨ Open plain text files with Texticle\n\nChoose **Open with → Texticle** in Explorer for a single `.txt` file. To use Texticle for all plain text files, open **Settings → Editor → Choose default app**, then select Texticle for **.txt** in Windows.\r\n",
+          "published_at": "2026-11-28T08:54:27Z",
+          "prerelease": false,
+          "draft": false,
+          "assets": [
+            {
+              "id": 803906523,
+              "name": "Texticle-Setup-0.1.2.exe",
+              "size": 91022388,
+              "state": "uploaded",
+              "browser_download_url": "https://github.com/fezcode/texticle/releases/download/v0.1.2/Texticle-Setup-0.1.2.exe",
+              "digest": "sha256:1e0d6f34ecf7239f1c30272579f06bcb660bc3a6038c24f0b315423465af8cfa"
+            }
+          ]
+        },
         {
           "tag_name": "v0.1.0",
           "html_url": "https://github.com/fezcode/texticle/releases/tag/v0.1.0",
