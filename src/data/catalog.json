@@ -408,6 +408,26 @@
       "defaultDirectory": "${PROGRAMFILES}/Drops",
       "homepage": "https://github.com/fezcode/drops-for-desktop",
       "artifacts": []
+    },
+    {
+      "id": "com.fezcode.texticle",
+      "name": "Texticle",
+      "version": "0.1.1",
+      "publisher": "Fezcode",
+      "category": "Productivity",
+      "tagline": "Open a folder. Start writing.",
+      "description": "A quiet text editor with folder workspaces, tabs, and search that finds things across every file as you type.",
+      "color": "#ffb547",
+      "icon": "/icons/com.fezcode.texticle.ico",
+      "project": "texticle",
+      "repository": "fezcode/texticle",
+      "manifest": "texticle/forge.toml",
+      "platforms": [
+        "windows"
+      ],
+      "defaultDirectory": "/Programs/Texticle",
+      "homepage": "https://github.com/fezcode/Texticle",
+      "artifacts": []
     }
   ]
 }
