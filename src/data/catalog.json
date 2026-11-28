@@ -428,6 +428,26 @@
       "defaultDirectory": "/Programs/Texticle",
       "homepage": "https://github.com/fezcode/Texticle",
       "artifacts": []
+    },
+    {
+      "id": "io.fezcode.stagecraft",
+      "name": "Stagecraft",
+      "version": "0.1.1",
+      "publisher": "Samil Bulbul",
+      "category": "Creative",
+      "tagline": "Write the demo. Get the video.",
+      "description": "Turn a script into a polished demo video: Stagecraft drives the real app, records its window, and adds the zooms, cursor, captions and slides.",
+      "color": "#b8c5ac",
+      "icon": "/icons/io.fezcode.stagecraft.ico",
+      "project": "Stagecraft",
+      "repository": "fezcode/Stagecraft",
+      "manifest": "Stagecraft/forge.toml",
+      "platforms": [
+        "windows"
+      ],
+      "defaultDirectory": "${LOCALAPPDATA}/Programs/Stagecraft",
+      "homepage": "",
+      "artifacts": []
     }
   ]
 }

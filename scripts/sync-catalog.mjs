@@ -28,6 +28,7 @@ const editorial = {
   Beetle: ['Utilities', 'Your screen, in colour.', 'Control an ELK-BLEDOM Bluetooth LED strip from your PC: colour, brightness, and ambient, rainbow and music modes, from the tray.', '#6fd9b8'],
   'drops-for-desktop': ['Utilities', 'From this device to that one.', 'Send a file to your other device from a window or the tray. Drag it in, paste it, or send the clipboard; everything deletes itself after an hour.', '#a3d1b6'],
   texticle: ['Productivity', 'Open a folder. Start writing.', 'A quiet text editor with folder workspaces, tabs, and search that finds things across every file as you type.', '#ffb547'],
+  Stagecraft: ['Creative', 'Write the demo. Get the video.', 'Turn a script into a polished demo video: Stagecraft drives the real app, records its window, and adds the zooms, cursor, captions and slides.', '#b8c5ac'],
 };
 // A sibling project joins the shelf by inviting itself: a `properties.piml` holding `(airlift) true`.
 // Without that line a project stays out however complete its Forge manifest is, which is how work in
